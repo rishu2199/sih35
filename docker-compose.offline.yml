@@ -1,0 +1,59 @@
+version: '3.8'
+
+# ==============================================================================
+# METROLOGIX-76 — 1-Click Air-Gapped Lab Offline Bundle
+# Zero-Internet Docker Compose Deployment for DoCA / RRSL Workstations
+# Statutory Standard: OIML R 76-1:2006 / Legal Metrology Act, 2009
+# ==============================================================================
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: metrologix-backend-offline
+    restart: unless-stopped
+    environment:
+      - DATABASE_URL=sqlite+aiosqlite:///app/data/metrologix.db
+      - ENVIRONMENT=production
+      - OFFLINE_MODE=true
+      - SECRET_KEY=metrologix-statutory-airgap-key-2026-doca-rrsl
+      - ALLOWED_ORIGINS=["http://localhost", "http://127.0.0.1", "http://localhost:80"]
+    volumes:
+      # Persistent local database volume
+      - lab_db_data:/app/data
+      # Local certificate exports directory
+      - lab_reports_data:/app/exports
+    ports:
+      - "8000:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+    networks:
+      - metrologix_internal
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    container_name: metrologix-frontend-offline
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - metrologix_internal
+
+volumes:
+  lab_db_data:
+    driver: local
+  lab_reports_data:
+    driver: local
+
+networks:
+  metrologix_internal:
+    driver: bridge

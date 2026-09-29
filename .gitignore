@@ -1,0 +1,48 @@
+# Root .gitignore
+
+# ── Python ─────────────────────────────────────────────────────────────────────
+venv/
+.venv/
+**/venv/
+**/__pycache__/
+*.py[cod]
+*$py.class
+.mypy_cache/
+**/.mypy_cache/
+.ruff_cache/
+**/.ruff_cache/
+.pytest_cache/
+**/.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+*.db
+*.sqlite
+*.sqlite3
+.env
+**/.env
+keys/
+**/keys/
+
+# ── Node / Frontend ─────────────────────────────────────────────────────────────
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.vite/
+**/.vite/
+
+# ── Rust / Tauri ────────────────────────────────────────────────────────────────
+src-tauri/target/
+**/target/
+
+# ── OS ──────────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ─────────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo

@@ -1,0 +1,92 @@
+{
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/dev/tooling/cli/schema.json",
+  "build": {
+    "beforeBuildCommand": "cd ../frontend && npm run build",
+    "beforeDevCommand": "cd ../frontend && npm run dev",
+    "devPath": "http://localhost:5173",
+    "distDir": "../frontend/dist"
+  },
+  "package": {
+    "productName": "METROLOGIX-76",
+    "version": "1.0.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "fs": {
+        "all": false,
+        "readFile": true,
+        "writeFile": true,
+        "readDir": true,
+        "copyFile": true,
+        "createDir": true,
+        "removeDir": false,
+        "removeFile": false,
+        "scope": ["$DOCUMENT/*", "$DESKTOP/*", "$APPDATA/*"]
+      },
+      "dialog": {
+        "all": true,
+        "open": true,
+        "save": true
+      },
+      "path": {
+        "all": true
+      },
+      "shell": {
+        "all": false,
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "category": "DeveloperTool",
+      "copyright": "Copyright 2026 Department of Consumer Affairs (DoCA), Ministry of Consumer Affairs, Food & Public Distribution, Government of India",
+      "deb": {
+        "depends": []
+      },
+      "externalBin": [],
+      "icon": [
+        "icons/32x32.png",
+        "icons/128x128.png",
+        "icons/128x128@2x.png",
+        "icons/icon.icns",
+        "icons/icon.ico"
+      ],
+      "identifier": "gov.in.doca.metrologix76",
+      "longDescription": "METROLOGIX-76 is the official automated verification and test report generation software suite for Non-Automatic Weighing Instruments (NAWI) conforming to OIML R 76-1:2006, OIML R 76-2:2007, and the Legal Metrology Act, 2009. Features deterministic changeover calculation engines, OpenCV optical spirit bubble and lead seal auditing, real-time serial port / WebSocket IoT LiveBridge, and cryptographic audit trail verification.",
+      "macOS": {
+        "frameworks": [],
+        "minimumSystemVersion": "",
+        "exceptionDomain": "",
+        "signingIdentity": null,
+        "entitlements": null
+      },
+      "resources": [],
+      "shortDescription": "Autonomous OIML R 76 Verification & Test Report Engine",
+      "targets": "all",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 900,
+        "resizable": true,
+        "title": "METROLOGIX-76 | OIML R 76 Autonomous Verification System (Air-Gapped Offline Lab Edition)",
+        "width": 1440,
+        "minHeight": 700,
+        "minWidth": 1024,
+        "center": true
+      }
+    ]
+  }
+}

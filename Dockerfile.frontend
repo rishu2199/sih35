@@ -1,0 +1,38 @@
+# ==============================================================================
+# METROLOGIX-76 Offline Frontend Container
+# Multi-stage build: Vite/React compilation -> Nginx Alpine server
+# ==============================================================================
+FROM node:20-alpine AS builder
+
+WORKDIR /app
+
+# Copy package manifests first for caching
+COPY frontend/package*.json ./
+RUN npm ci
+
+# Copy frontend source code
+COPY frontend/ ./
+
+# Build production bundle (HTML, JS, CSS)
+RUN npm run build
+
+# --- Runtime Nginx Stage ---
+FROM nginx:alpine AS runner
+
+# Remove default nginx config
+RUN rm /etc/nginx/conf.d/default.conf
+
+# Copy custom reverse proxy config
+COPY nginx.offline.conf /etc/nginx/nginx.conf
+
+# Copy built frontend assets from builder
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Expose HTTP port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost/health || exit 1
+
+CMD ["nginx", "-g", "daemon off;"]

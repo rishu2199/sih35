@@ -34,11 +34,16 @@ from sqlalchemy import event, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.types import ComplianceStatus
-from app.db.models import (
-    AuditTrailEvent,
-    TestObservation,
-    TestSessionStatus,
-)
+try:
+    from app.db.models import (
+        AuditTrailEvent,
+        TestObservation,
+        TestSessionStatus,
+    )
+except ImportError:
+    AuditTrailEvent = None  # type: ignore[assignment, misc]
+    TestObservation = None  # type: ignore[assignment, misc]
+    TestSessionStatus = None  # type: ignore[assignment, misc]
 
 # Statutory Constants
 GENESIS_HASH: str = "0" * 64
@@ -175,9 +180,12 @@ class AuditLogger:
 
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
+        _register_audit_listeners()
 
     async def get_latest_event(self, session_id: str) -> AuditTrailEvent | None:
         """Fetch the most recent audit trail event for the specified test session."""
+        from app.db.models import AuditTrailEvent
+
         stmt = (
             select(AuditTrailEvent)
             .where(AuditTrailEvent.session_id == session_id)
@@ -254,6 +262,8 @@ class AuditLogger:
             "canonical_payload": canonical_payload,
             "extra_data": extra_data if extra_data is not None else {},
         }
+
+        from app.db.models import AuditTrailEvent
 
         event_record = AuditTrailEvent(
             id=event_id,
@@ -400,6 +410,8 @@ class AuditLogger:
 
     async def get_audit_trail(self, session_id: str) -> Sequence[AuditTrailEvent]:
         """Fetch all chronological audit events for a test session."""
+        from app.db.models import AuditTrailEvent
+
         stmt = (
             select(AuditTrailEvent)
             .where(AuditTrailEvent.session_id == session_id)
@@ -528,19 +540,34 @@ async def verify_audit_integrity(
 # ============================================================================
 
 
-@event.listens_for(AuditTrailEvent, "before_update", propagate=True)
-def _prevent_audit_update(mapper: object, connection: object, target: AuditTrailEvent) -> None:
+def _prevent_audit_update(mapper: object, connection: object, target: Any) -> None:
     """Intercept and reject any ORM update operation on audit records."""
     raise ImmutableAuditRecordError(
-        f"Illegal modification attempt: Audit trail event '{target.id}' is strictly immutable "
+        f"Illegal modification attempt: Audit trail event '{getattr(target, 'id', 'unknown')}' is strictly immutable "
         "under Legal Metrology Act regulations (Clause 26035). Updates are prohibited."
     )
 
 
-@event.listens_for(AuditTrailEvent, "before_delete", propagate=True)
-def _prevent_audit_delete(mapper: object, connection: object, target: AuditTrailEvent) -> None:
+def _prevent_audit_delete(mapper: object, connection: object, target: Any) -> None:
     """Intercept and reject any ORM delete operation on audit records."""
     raise ImmutableAuditRecordError(
-        f"Illegal deletion attempt: Audit trail event '{target.id}' cannot be deleted. "
+        f"Illegal deletion attempt: Audit trail event '{getattr(target, 'id', 'unknown')}' cannot be deleted. "
         "Audit trail records are strictly append-only under Legal Metrology Act regulations."
     )
+
+
+def _register_audit_listeners() -> None:
+    """Register immutability event listeners on AuditTrailEvent."""
+    try:
+        from app.db.models import AuditTrailEvent
+
+        if AuditTrailEvent is not None:
+            if not event.contains(AuditTrailEvent, "before_update", _prevent_audit_update):
+                event.listen(AuditTrailEvent, "before_update", _prevent_audit_update, propagate=True)
+            if not event.contains(AuditTrailEvent, "before_delete", _prevent_audit_delete):
+                event.listen(AuditTrailEvent, "before_delete", _prevent_audit_delete, propagate=True)
+    except Exception:
+        pass
+
+
+_register_audit_listeners()

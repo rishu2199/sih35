@@ -348,3 +348,46 @@ class TestReviewPipeline:
         comments_data = get_res.json()
         assert comments_data["total"] >= 1
         assert any(c["step_index"] == 5 for c in comments_data["comments"])
+
+    @pytest.mark.asyncio
+    async def test_individual_director_pin_configuration(
+        self,
+        review_client: AsyncClient,
+        review_db_session: AsyncSession,
+    ) -> None:
+        """Verify setting individual Director PIN and using it to sign session."""
+        # 1. Configure personal Director PIN '9876'
+        set_pin_res = await review_client.post(
+            "/api/v1/review/directors/usr-director-01/pin",
+            json={"director_pin": "9876"},
+        )
+        assert set_pin_res.status_code == 200
+        assert "Personal signing PIN successfully configured" in set_pin_res.json()["message"]
+
+        # 2. Attempt signing with wrong PIN -> fails with 401
+        wrong_payload = {
+            "director_id": "usr-director-01",
+            "director_name": "Dr. Rajeshwar Sharma",
+            "director_pin": "0000",
+            "statutory_confirmed": True,
+        }
+        fail_res = await review_client.post(
+            "/api/v1/review/sessions/sess-review-test-01/sign",
+            json=wrong_payload,
+        )
+        assert fail_res.status_code == 401
+
+        # 3. Sign with configured personal PIN '9876' -> succeeds
+        correct_payload = {
+            "director_id": "usr-director-01",
+            "director_name": "Dr. Rajeshwar Sharma",
+            "director_pin": "9876",
+            "statutory_confirmed": True,
+        }
+        sign_res = await review_client.post(
+            "/api/v1/review/sessions/sess-review-test-01/sign",
+            json=correct_payload,
+        )
+        assert sign_res.status_code == 200
+        assert sign_res.json()["status"] == "APPROVED"
+        assert sign_res.json()["is_locked"] is True

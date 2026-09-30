@@ -132,6 +132,10 @@ class User(Base, TimestampMixin):
         default=True,
         nullable=False,
     )
+    director_pin_hash: Mapped[str | None] = mapped_column(
+        String(255),
+        nullable=True,
+    )
     laboratory_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("laboratories.id", ondelete="SET NULL"),
@@ -553,6 +557,13 @@ class TestSession(Base, TimestampMixin):
         order_by="AuditTrailEvent.created_at",
         lazy="selectin",
     )
+    row_comments: Mapped[list[RowAuditComment]] = relationship(
+        "RowAuditComment",
+        back_populates="test_session",
+        cascade="all, delete-orphan",
+        order_by="RowAuditComment.created_at",
+        lazy="selectin",
+    )
 
 
 class TestObservation(Base, TimestampMixin):
@@ -723,6 +734,76 @@ class AuditTrailEvent(Base):
     )
     operator: Mapped[User] = relationship(
         "User",
+    )
+
+
+class RowAuditComment(Base, TimestampMixin):
+    """Row-level observation audit comments made by testing officers, reviewers, or directors."""
+
+    __tablename__ = "row_audit_comments"
+
+    id: Mapped[str] = mapped_column(
+        String(36),
+        primary_key=True,
+        default=generate_uuid,
+    )
+    session_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("test_sessions.id", ondelete="CASCADE"),
+        index=True,
+        nullable=False,
+    )
+    step_index: Mapped[int] = mapped_column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+    test_type: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        default="WEIGHING",
+    )
+    target_load: Mapped[Decimal] = mapped_column(
+        Numeric(16, 6),
+        nullable=False,
+        default=Decimal("0.0"),
+    )
+    unit: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="g",
+    )
+    author_name: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    author_role: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+    )
+    author_email: Mapped[str] = mapped_column(
+        String(255),
+        nullable=False,
+    )
+    comment: Mapped[str] = mapped_column(
+        Text,
+        nullable=False,
+    )
+    severity: Mapped[str] = mapped_column(
+        String(30),
+        nullable=False,
+        default="FLAG",  # NOTE | FLAG | REJECT_REASON
+    )
+    resolved: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        nullable=False,
+    )
+
+    # Relationships
+    test_session: Mapped[TestSession] = relationship(
+        "TestSession",
+        back_populates="row_comments",
     )
 
 

@@ -86,6 +86,19 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return plain_password == hashed_password
 
 
+def get_pin_hash(pin: str) -> str:
+    """Hash numeric Director PIN using Argon2id with random salt."""
+    if not pin or len(pin) < 4:
+        raise ValueError("Director PIN must be at least 4 digits.")
+    return _argon2_hasher.hash(pin)
+
+
+def verify_pin(plain_pin: str, hashed_pin: str) -> bool:
+    """Verify numeric Director PIN against Argon2id hash with fallback."""
+    return verify_password(plain_pin, hashed_pin)
+
+
+
 
 def create_access_token(
     subject: str,

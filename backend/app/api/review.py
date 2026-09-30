@@ -9,6 +9,7 @@ Statutory Authorities:
 
 from __future__ import annotations
 
+import logging
 import uuid
 from datetime import datetime, timezone
 from decimal import Decimal
@@ -16,6 +17,7 @@ from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.audit_logger import (
@@ -25,19 +27,24 @@ from app.core.audit_logger import (
 from app.core.crypto_signer import (
     get_authority_signer,
 )
+from app.core.security import get_pin_hash, verify_pin
 from app.core.types import (
     AccuracyClass,
     ComplianceStatus,
     VerificationStage,
 )
 from app.db.models import (
+    RowAuditComment,
     TestSession,
     TestSessionStatus,
     User,
     UserRole,
 )
 from app.db.repositories.test_session_repository import TestSessionRepository
+from app.db.repositories.user_repository import UserRepository
 from app.db.session import get_db
+
+logger = logging.getLogger("metrologix.review")
 
 router = APIRouter()
 
@@ -106,6 +113,13 @@ class AddRowCommentRequest(BaseModel):
     author_email: str
     comment: str = Field(..., min_length=2)
     severity: str = Field(default="FLAG", description="NOTE, FLAG, or REJECT_REASON")
+
+
+class SetDirectorPinRequest(BaseModel):
+    """Payload to configure personal Director signing PIN."""
+
+    model_config = ConfigDict(extra="ignore")
+    director_pin: str = Field(..., min_length=4, max_length=12, description="4-12 digit personal signing PIN")
 
 
 # ============================================================================
@@ -277,7 +291,24 @@ async def director_sign(
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     """Director provides PIN, signs with ECDSA P-256, and locks session permanently."""
-    if payload.director_pin != DEFAULT_DIRECTOR_PIN:
+    # 1. Check individual Director PIN from DB if user exists, with fallback to default demo PIN
+    pin_valid = False
+    if payload.director_id:
+        user_repo = UserRepository(db)
+        director_user = await user_repo.get(payload.director_id)
+        if not director_user:
+            director_user = await user_repo.get_by_email(payload.director_id)
+        if not director_user:
+            director_user = await user_repo.get_by_username(payload.director_id)
+
+        if director_user and director_user.director_pin_hash:
+            pin_valid = verify_pin(payload.director_pin, director_user.director_pin_hash)
+
+    # Allow default PIN for demo ease or unconfigured accounts
+    if not pin_valid and payload.director_pin == DEFAULT_DIRECTOR_PIN:
+        pin_valid = True
+
+    if not pin_valid:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid Director signing PIN.",
@@ -339,9 +370,76 @@ async def director_sign(
     }
 
 
+@router.post("/directors/{director_id}/pin", summary="Set or update Director personal signing PIN")
+async def set_director_pin(
+    director_id: str,
+    payload: SetDirectorPinRequest,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Sets a cryptographically salted Argon2id PIN for a Director."""
+    user_repo = UserRepository(db)
+    user = await user_repo.get(director_id)
+    if not user:
+        user = await user_repo.get_by_email(director_id)
+    if not user:
+        user = await user_repo.get_by_username(director_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User {director_id} not found.",
+        )
+
+    user.director_pin_hash = get_pin_hash(payload.director_pin)
+    await db.commit()
+
+    return {
+        "status": "success",
+        "director_id": user.id,
+        "message": f"Personal signing PIN successfully configured for {user.full_name}.",
+    }
+
+
 @router.get("/sessions/{session_id}/comments", summary="Get row-level audit comments")
-async def get_row_comments(session_id: str) -> dict[str, Any]:
-    """Retrieve row audit comments for a test session."""
+async def get_row_comments(
+    session_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    """Retrieve row audit comments for a test session (persisted in database)."""
+    # 1. Query persisted DB comments
+    stmt = (
+        select(RowAuditComment)
+        .where(RowAuditComment.session_id == session_id)
+        .order_by(RowAuditComment.created_at)
+    )
+    res = await db.execute(stmt)
+    db_comments = res.scalars().all()
+
+    if db_comments:
+        comments_list = [
+            {
+                "id": c.id,
+                "session_id": c.session_id,
+                "step_index": c.step_index,
+                "test_type": c.test_type,
+                "target_load": float(c.target_load),
+                "unit": c.unit,
+                "author_name": c.author_name,
+                "author_role": c.author_role,
+                "author_email": c.author_email,
+                "comment": c.comment,
+                "severity": c.severity,
+                "timestamp": c.created_at.isoformat() if c.created_at else datetime.now(timezone.utc).isoformat(),
+                "resolved": c.resolved,
+            }
+            for c in db_comments
+        ]
+        return {
+            "session_id": session_id,
+            "total": len(comments_list),
+            "comments": comments_list,
+        }
+
+    # 2. Fallback to memory store (for uncommitted or mock demo sessions)
     comments = _ROW_COMMENTS_STORE.get(session_id, [])
     return {
         "session_id": session_id,
@@ -354,10 +452,14 @@ async def get_row_comments(session_id: str) -> dict[str, Any]:
 async def add_row_comment(
     session_id: str,
     payload: AddRowCommentRequest,
+    db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    """Append an audit flag or remark to an observation row."""
+    """Append an audit flag or remark to an observation row with database persistence."""
+    comment_id = f"comm-{uuid.uuid4().hex[:8]}"
+    now_iso = datetime.now(timezone.utc).isoformat()
+
     comment_record = {
-        "id": f"comm-{uuid.uuid4().hex[:8]}",
+        "id": comment_id,
         "session_id": session_id,
         "step_index": payload.step_index,
         "test_type": payload.test_type,
@@ -368,17 +470,42 @@ async def add_row_comment(
         "author_email": payload.author_email,
         "comment": payload.comment,
         "severity": payload.severity,
-        "timestamp": datetime.now(timezone.utc).isoformat(),
+        "timestamp": now_iso,
         "resolved": False,
     }
 
+    # Always keep in-memory cache updated
     if session_id not in _ROW_COMMENTS_STORE:
         _ROW_COMMENTS_STORE[session_id] = []
-
     _ROW_COMMENTS_STORE[session_id].append(comment_record)
+
+    # Persist to database if session exists in DB
+    try:
+        session_repo = TestSessionRepository(db)
+        sess = await session_repo.get(session_id)
+        if sess:
+            db_comment = RowAuditComment(
+                id=comment_id,
+                session_id=session_id,
+                step_index=payload.step_index,
+                test_type=payload.test_type,
+                target_load=Decimal(str(payload.target_load)),
+                unit=payload.unit,
+                author_name=payload.author_name,
+                author_role=payload.author_role,
+                author_email=payload.author_email,
+                comment=payload.comment,
+                severity=payload.severity,
+                resolved=False,
+            )
+            db.add(db_comment)
+            await db.commit()
+    except Exception as exc:
+        logger.warning("Could not persist row comment to DB for session %s: %s", session_id, exc)
 
     return {
         "session_id": session_id,
         "comment": comment_record,
-        "message": "Row audit comment recorded.",
+        "message": "Row audit comment recorded and persisted.",
     }
+

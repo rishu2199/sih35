@@ -1,5 +1,8 @@
 """METROLOGIX-76 FastAPI Application Entry Point."""
 
+import logging
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -13,6 +16,23 @@ from app.api.scenarios import router as scenarios_router
 from app.api.verification import router as verification_router
 from app.api.vision import router as vision_router
 from app.core.config import settings
+from app.db.seed import seed_database
+from app.db.session import init_db
+
+logger = logging.getLogger("metrologix.main")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifecycle events: initialize database schema and seed statutory records on startup."""
+    try:
+        await init_db()
+        await seed_database()
+        logger.info("Statutory database schema initialized and seeded successfully.")
+    except Exception as exc:
+        logger.warning("Database auto-initialization notice: %s", exc)
+    yield
+
 
 app = FastAPI(
     title=settings.APP_TITLE,
@@ -24,7 +44,9 @@ app = FastAPI(
     docs_url="/api/docs",
     redoc_url="/api/redoc",
     openapi_url="/api/openapi.json",
+    lifespan=lifespan,
 )
+
 
 app.add_middleware(
     CORSMiddleware,

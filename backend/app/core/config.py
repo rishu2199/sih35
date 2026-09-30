@@ -1,5 +1,8 @@
 """Application configuration loaded from environment variables."""
 
+import json
+from typing import Any
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -24,6 +27,16 @@ class Settings(BaseSettings):
     # Database
     DATABASE_URL: str = "sqlite+aiosqlite:///./metrologix.db"
 
+    @field_validator("DATABASE_URL", mode="before")
+    @classmethod
+    def assemble_database_url(cls, v: Any) -> str:
+        if isinstance(v, str):
+            if v.startswith("postgres://"):
+                return v.replace("postgres://", "postgresql+asyncpg://", 1)
+            elif v.startswith("postgresql://") and not v.startswith("postgresql+"):
+                return v.replace("postgresql://", "postgresql+asyncpg://", 1)
+        return str(v)
+
     # Security
     SECRET_KEY: str = "dev-secret-key-replace-in-production"
     JWT_ALGORITHM: str = "HS256"
@@ -34,7 +47,22 @@ class Settings(BaseSettings):
     LAB_PUBLIC_KEY_PATH: str = "./keys/lab_public.pem"
 
     # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000", "*"]
+
+    @field_validator("CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: Any) -> list[str]:
+        if isinstance(v, str):
+            stripped = v.strip()
+            if stripped.startswith("[") and stripped.endswith("]"):
+                try:
+                    return json.loads(stripped)
+                except Exception:
+                    pass
+            return [i.strip() for i in stripped.split(",") if i.strip()]
+        elif isinstance(v, list):
+            return v
+        return ["*"]
 
     # eMaap
     EMAAP_VERIFY_BASE_URL: str = "https://emaap.doca.gov.in/verify"

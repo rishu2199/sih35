@@ -74,7 +74,7 @@ export const DirectorSignModal: React.FC<DirectorSignModalProps> = ({
       let qrCodeBase64 = '';
 
       try {
-        const response = await fetch('http://localhost:8000/api/v1/verify/sign', {
+        const response = await fetch('/api/v1/verify/sign', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

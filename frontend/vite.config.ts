@@ -1,16 +1,19 @@
+import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+
+const rootDir = import.meta.dirname ?? fileURLToPath(new URL('.', import.meta.url))
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@':          `${import.meta.dirname}/src`,
-      '@core':      `${import.meta.dirname}/src/core`,
-      '@features':  `${import.meta.dirname}/src/features`,
-      '@components':`${import.meta.dirname}/src/components`,
-      '@types':     `${import.meta.dirname}/src/types`,
+      '@':          `${rootDir}/src`,
+      '@core':      `${rootDir}/src/core`,
+      '@features':  `${rootDir}/src/features`,
+      '@components':`${rootDir}/src/components`,
+      '@types':     `${rootDir}/src/types`,
     },
   },
   server: {

@@ -1,7 +1,7 @@
 """Application configuration loaded from environment variables."""
 
 import json
-from typing import Any
+from typing import Any, Union
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -47,21 +47,23 @@ class Settings(BaseSettings):
     LAB_PUBLIC_KEY_PATH: str = "./keys/lab_public.pem"
 
     # CORS
-    CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000", "*"]
+    CORS_ORIGINS: Union[list[str], str] = ["http://localhost:5173", "http://localhost:3000", "*"]
 
-    @field_validator("CORS_ORIGINS", mode="before")
+    @field_validator("CORS_ORIGINS", mode="after")
     @classmethod
     def assemble_cors_origins(cls, v: Any) -> list[str]:
         if isinstance(v, str):
-            stripped = v.strip()
-            if stripped.startswith("[") and stripped.endswith("]"):
+            s = v.strip()
+            if s.startswith("[") and s.endswith("]"):
                 try:
-                    return json.loads(stripped)
+                    parsed = json.loads(s)
+                    if isinstance(parsed, list):
+                        return [str(x) for x in parsed]
                 except Exception:
                     pass
-            return [i.strip() for i in stripped.split(",") if i.strip()]
+            return [i.strip() for i in s.split(",") if i.strip()] or ["*"]
         elif isinstance(v, list):
-            return v
+            return [str(x) for x in v]
         return ["*"]
 
     # eMaap

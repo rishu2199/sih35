@@ -47,3 +47,26 @@ class TestConfiguration:
 
     def test_settings_jwt_algorithm(self) -> None:
         assert settings.JWT_ALGORITHM == "HS256"
+
+    def test_settings_cors_origins_various_env_formats(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        from app.core.config import Settings
+
+        # Case 1: Wildcard string (Render deployment format: CORS_ORIGINS="*")
+        monkeypatch.setenv("CORS_ORIGINS", "*")
+        s1 = Settings()
+        assert s1.CORS_ORIGINS == ["*"]
+
+        # Case 2: Comma-separated origins
+        monkeypatch.setenv("CORS_ORIGINS", "https://app.metrologix.com, https://admin.metrologix.com")
+        s2 = Settings()
+        assert s2.CORS_ORIGINS == ["https://app.metrologix.com", "https://admin.metrologix.com"]
+
+        # Case 3: JSON array string
+        monkeypatch.setenv("CORS_ORIGINS", '["http://localhost:5173", "https://foo.com"]')
+        s3 = Settings()
+        assert s3.CORS_ORIGINS == ["http://localhost:5173", "https://foo.com"]
+
+        # Case 4: Empty string fallback
+        monkeypatch.setenv("CORS_ORIGINS", "")
+        s4 = Settings()
+        assert s4.CORS_ORIGINS == ["*"]

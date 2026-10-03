@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
+from typing import Annotated, Any
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field
@@ -48,6 +48,18 @@ from app.reporting.pdf_compiler import (
 logger = logging.getLogger("metrologix.reports")
 
 router = APIRouter()
+
+
+def _val(obj: Any) -> str:
+    """Safely extract string value whether obj is an Enum, str, or None."""
+    if obj is None:
+        return ""
+    return obj.value if hasattr(obj, "value") else str(obj)
+
+
+def _is_locked(status_obj: Any) -> bool:
+    """Return True if session is in a permanently locked state (APPROVED or ARCHIVED)."""
+    return _val(status_obj).upper() in ("APPROVED", "ARCHIVED")
 
 
 # ============================================================================
@@ -224,13 +236,14 @@ async def _build_report_data_from_db(
         obs_list = sess.observations or []
 
         # Sort observations by sequence
-        obs_list.sort(key=lambda o: (o.test_type.value, o.sequence_number))
+        obs_list.sort(key=lambda o: (_val(o.test_type), o.sequence_number))
 
         weighing_rows: list[ObservationRowItem] = []
         eccentricity_rows: list[EccentricityRowItem] = []
 
         for o in obs_list:
-            if o.test_type == TestType.WEIGHING_TEST:
+            o_type = _val(o.test_type)
+            if o_type in ("WEIGHING_TEST", TestType.WEIGHING_TEST.value):
                 weighing_rows.append(
                     ObservationRowItem(
                         step=o.sequence_number,
@@ -244,10 +257,10 @@ async def _build_report_data_from_db(
                         corrected_error=f"{o.corrected_error_Ec or o.calculated_error_E or 0} g",
                         mpe=f"±{o.mpe_limit or 2.5} g",
                         margin="0.5 g",
-                        status=o.compliance_status.value if o.compliance_status else "PASS",
+                        status=_val(o.compliance_status) or "PASS",
                     )
                 )
-            elif o.test_type == TestType.ECCENTRICITY_TEST:
+            elif o_type in ("ECCENTRICITY_TEST", TestType.ECCENTRICITY_TEST.value):
                 eccentricity_rows.append(
                     EccentricityRowItem(
                         position_number=o.sequence_number,
@@ -258,7 +271,7 @@ async def _build_report_data_from_db(
                         corrected_error=f"{o.corrected_error_Ec or 0} g",
                         mpe=f"±{o.mpe_limit or 2.5} g",
                         margin="0.4 g",
-                        status=o.compliance_status.value if o.compliance_status else "PASS",
+                        status=_val(o.compliance_status) or "PASS",
                     )
                 )
 
@@ -273,23 +286,24 @@ async def _build_report_data_from_db(
             reviewing_officer_name=sess.reviewer.full_name if sess.reviewer else "Principal Scientific Officer",
             director_name="Dr. Rajeshwari Sen",
             director_designation="Director & Controller of Legal Metrology",
-            verification_stage=sess.verification_stage.value if sess.verification_stage else "INITIAL_TYPE_APPROVAL",
-            accuracy_class=inst.accuracy_class.value if inst else "CLASS_III",
-            overall_verdict=sess.overall_compliance.value if sess.overall_compliance else "PASS",
+            verification_stage=_val(sess.verification_stage) or "INITIAL_TYPE_APPROVAL",
+            accuracy_class=_val(inst.accuracy_class) if inst else "CLASS_III",
+            overall_verdict=_val(sess.overall_compliance) or "PASS",
         )
 
+        unit_str = _val(inst.unit) if inst and inst.unit else "g"
         form1 = Form1GeneralInfo(
-            applicant_name=f"{inst.manufacturer} (Client)",
-            manufacturer_name=inst.manufacturer if inst else "Avery India Ltd.",
-            pattern_type=f"{inst.model_name} Electronic Weighing Instrument" if inst else "NAWI",
-            model_name=inst.model_name if inst else "ZM510-PRO",
-            serial_number=inst.serial_number if inst else "SN-2026-9931",
-            accuracy_class=inst.accuracy_class.value if inst else "CLASS_III",
-            max_capacity=f"{inst.max_capacity} {inst.unit.value}" if inst else "30 kg",
-            min_capacity=f"{inst.min_capacity} {inst.unit.value}" if inst else "100 g",
-            e=f"{inst.verification_scale_interval} {inst.unit.value}" if inst else "5 g",
-            d=f"{inst.actual_scale_interval} {inst.unit.value}" if inst else "5 g",
-            receptor_type=inst.receptor_type.value if inst and inst.receptor_type else "Platform",
+            applicant_name=f"{inst.manufacturer} (Client)" if inst and inst.manufacturer else "Client Applicant",
+            manufacturer_name=inst.manufacturer if inst and inst.manufacturer else "Avery India Ltd.",
+            pattern_type=f"{inst.model_name} Electronic Weighing Instrument" if inst and inst.model_name else "NAWI",
+            model_name=inst.model_name if inst and inst.model_name else "ZM510-PRO",
+            serial_number=inst.serial_number if inst and inst.serial_number else "SN-2026-9931",
+            accuracy_class=_val(inst.accuracy_class) if inst else "CLASS_III",
+            max_capacity=f"{inst.max_capacity} {unit_str}" if inst and inst.max_capacity else "30 kg",
+            min_capacity=f"{inst.min_capacity} {unit_str}" if inst and inst.min_capacity else "100 g",
+            e=f"{inst.verification_scale_interval} {unit_str}" if inst and inst.verification_scale_interval else "5 g",
+            d=f"{inst.actual_scale_interval} {unit_str}" if inst and inst.actual_scale_interval else "5 g",
+            receptor_type=_val(inst.receptor_type) or "Platform" if inst and inst.receptor_type else "Platform",
             number_of_supports=inst.num_supports if inst and inst.num_supports else 4,
         )
 
@@ -300,7 +314,7 @@ async def _build_report_data_from_db(
         )
 
         form3 = Form3SummaryEvaluation(
-            overall_verdict=sess.overall_compliance.value if sess.overall_compliance else "PASS",
+            overall_verdict=_val(sess.overall_compliance) or "PASS",
         )
 
         return OimlR76ReportData(
@@ -332,9 +346,9 @@ async def _build_report_data_from_db(
     },
 )
 async def download_pdf_report(
-    session_id: str | None = Query(default=None, description="Optional Test Session UUID"),
-    language: str = Query(default="en", pattern="^(en|hi|bilingual)$", description="Report language: en, hi, bilingual"),
-    db: AsyncSession = Depends(get_db),
+    session_id: Annotated[str | None, Query(description="Optional Test Session UUID")] = None,
+    language: Annotated[str, Query(pattern="^(en|hi|bilingual)$", description="Report language: en, hi, bilingual")] = "en",
+    db: Annotated[AsyncSession, Depends(get_db)] = None,  # type: ignore[assignment]
 ) -> Response:
     """
     Compiles and streams official OIML R 76-2 Type Evaluation PDF/A document.
@@ -381,9 +395,9 @@ async def download_pdf_report(
     },
 )
 async def download_docx_report(
-    session_id: str | None = Query(default=None, description="Optional Test Session UUID"),
-    language: str = Query(default="en", pattern="^(en|hi|bilingual)$", description="Report language: en, hi, bilingual"),
-    db: AsyncSession = Depends(get_db),
+    session_id: Annotated[str | None, Query(description="Optional Test Session UUID")] = None,
+    language: Annotated[str, Query(pattern="^(en|hi|bilingual)$", description="Report language: en, hi, bilingual")] = "en",
+    db: Annotated[AsyncSession, Depends(get_db)] = None,  # type: ignore[assignment]
 ) -> Response:
     """
     Compiles and streams editable Microsoft Word (.docx) OIML R 76-2 Type Evaluation Report.
@@ -423,8 +437,8 @@ async def download_docx_report(
 )
 async def get_session_pdf_report(
     session_id: str,
-    language: str = Query(default="en", pattern="^(en|hi|bilingual)$"),
-    db: AsyncSession = Depends(get_db),
+    language: Annotated[str, Query(pattern="^(en|hi|bilingual)$")] = "en",
+    db: Annotated[AsyncSession, Depends(get_db)] = None,  # type: ignore[assignment]
 ) -> Response:
     """Direct session shortcut for PDF/A report download."""
     return await download_pdf_report(session_id=session_id, language=language, db=db)
@@ -436,11 +450,12 @@ async def get_session_pdf_report(
 )
 async def get_session_docx_report(
     session_id: str,
-    language: str = Query(default="en", pattern="^(en|hi|bilingual)$"),
-    db: AsyncSession = Depends(get_db),
+    language: Annotated[str, Query(pattern="^(en|hi|bilingual)$")] = "en",
+    db: Annotated[AsyncSession, Depends(get_db)] = None,  # type: ignore[assignment]
 ) -> Response:
     """Direct session shortcut for editable Word .docx report download."""
     return await download_docx_report(session_id=session_id, language=language, db=db)
+
 
 
 @router.post(
@@ -499,13 +514,13 @@ async def generate_custom_docx(
     summary="Search and retrieve previously generated test reports",
 )
 async def search_reports_repository(
-    search: str | None = Query(default=None, description="Free-text search for serial, model, manufacturer"),
-    status_filter: str | None = Query(default=None, alias="status", description="Status filter: APPROVED, PENDING_REVIEW, etc."),
-    stage_filter: str | None = Query(default=None, alias="stage", description="Verification stage filter"),
-    accuracy_class: str | None = Query(default=None, alias="class", description="Accuracy class filter"),
-    page: int = Query(default=1, ge=1),
-    page_size: int = Query(default=20, ge=1, le=100),
-    db: AsyncSession = Depends(get_db),
+    search: Annotated[str | None, Query(description="Free-text search for serial, model, manufacturer")] = None,
+    status_filter: Annotated[str | None, Query(alias="status", description="Status filter: APPROVED, PENDING_REVIEW, etc.")] = None,
+    stage_filter: Annotated[str | None, Query(alias="stage", description="Verification stage filter")] = None,
+    accuracy_class: Annotated[str | None, Query(alias="class", description="Accuracy class filter")] = None,
+    page: Annotated[int, Query(ge=1)] = 1,
+    page_size: Annotated[int, Query(ge=1, le=100)] = 20,
+    db: Annotated[AsyncSession, Depends(get_db)] = None,  # type: ignore[assignment]
 ) -> ReportRepositoryResponse:
     """
     Search and retrieval facility for completed, in-process, and historical test reports.
@@ -537,13 +552,17 @@ async def search_reports_repository(
             model_name = inst.model_name if inst else "Unknown Model"
             serial_no = inst.serial_number if inst else "Unknown Serial"
             mfg = inst.manufacturer if inst else "Unknown Manufacturer"
-            cls_val = inst.accuracy_class.value if inst else "CLASS_III"
-            cap_val = f"{inst.max_capacity} {inst.unit.value}" if inst else "N/A"
+            cls_val = _val(inst.accuracy_class) if inst else "CLASS_III"
+            unit_val = _val(inst.unit) if inst else "kg"
+            cap_val = f"{inst.max_capacity} {unit_val}" if inst and inst.max_capacity else "N/A"
+
+            s_status = _val(s.status)
+            s_stage = _val(s.verification_stage) or "INITIAL_TYPE_APPROVAL"
 
             # Filter checks
-            if status_filter and s.status.value != status_filter:
+            if status_filter and s_status != status_filter:
                 continue
-            if stage_filter and s.verification_stage.value != stage_filter:
+            if stage_filter and s_stage != stage_filter:
                 continue
             if accuracy_class and cls_val != accuracy_class:
                 continue
@@ -568,13 +587,13 @@ async def search_reports_repository(
                     serial_number=serial_no,
                     accuracy_class=cls_val,
                     max_capacity=cap_val,
-                    verification_stage=s.verification_stage.value if s.verification_stage else "INITIAL_TYPE_APPROVAL",
-                    status=s.status.value,
-                    overall_compliance=s.overall_compliance.value if s.overall_compliance else "PENDING",
+                    verification_stage=s_stage,
+                    status=s_status,
+                    overall_compliance=_val(s.overall_compliance) or "PENDING",
                     laboratory_name=lab.name if lab else "Regional Reference Standard Laboratory",
                     operator_name=op.full_name if op else "Testing Officer",
                     signature_digest=None,
-                    is_locked=s.status in (TestSessionStatus.APPROVED, TestSessionStatus.ARCHIVED),
+                    is_locked=_is_locked(s.status),
                     completed_at=s.completed_at.isoformat() if s.completed_at else None,
                     created_at=s.created_at.isoformat() if s.created_at else None,
                     pdf_download_url=f"/api/v1/reports/sessions/{s.id}/pdf",

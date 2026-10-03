@@ -60,9 +60,12 @@ from app.db.session import async_session_factory, init_db
 
 logger = logging.getLogger("metrologix.seed")
 
-# Pre-computed secure bcrypt hash for default development accounts: "Metrologix@2026"
+# Pre-computed secure Argon2id hash for default development accounts: "Metrologix@2026"
 DEFAULT_PASSWORD_HASH = (
-    "$2b$12$e8YdEvhG18FmD8hJ3mP3CeU60s6y0Z9Qy4sLgT5uD9cW2lP.OaB3W"  # noqa: S105
+    "$argon2id$v=19$m=65536,t=3,p=4$SOtC/3G6VsfruVUzOhJglw$dUXCd2+qcSmIiXukEZk3isMlYc0mMqW38k4YYk4veTg"
+)
+OLD_INVALID_BCRYPT_HASH = (
+    "$2b$12$e8YdEvhG18FmD8hJ3mP3CeU60s6y0Z9Qy4sLgT5uD9cW2lP.OaB3W"
 )
 
 # ============================================================================
@@ -428,6 +431,8 @@ async def _run_seed(session: AsyncSession) -> dict[str, int]:
             user_map[user.username] = user
             stats["users"] += 1
         else:
+            if existing_user.hashed_password == OLD_INVALID_BCRYPT_HASH:
+                existing_user.hashed_password = DEFAULT_PASSWORD_HASH
             user_map[existing_user.username] = existing_user
 
     # 3. Seed Certified Standard Weight Sets

@@ -17,13 +17,13 @@ router = APIRouter()
 
 
 class ParsePacketRequest(BaseModel):
-    raw_packet: str = Field(..., example="ST,GS,+0010.000kg\r\n", description="Raw ASCII string from serial port")
+    raw_packet: str = Field(..., examples=["ST,GS,+0010.000kg\r\n"], description="Raw ASCII string from serial port")
 
 
 class WelmecVerifyRequest(BaseModel):
     audit_string: Optional[str] = Field(
         default=None,
-        example="I4 A \"WELMEC-7.2;C=0042;P=0017;FW=a3f9e29b;V=2.4.1\"",
+        examples=["I4 A \"WELMEC-7.2;C=0042;P=0017;FW=a3f9e29b;V=2.4.1\""],
         description="Raw interrogation response from instrument"
     )
     reported_counter: Optional[int] = Field(default=42, description="Calibration event counter C reported by scale")

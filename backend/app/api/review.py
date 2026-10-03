@@ -55,6 +55,18 @@ _ROW_COMMENTS_STORE: dict[str, list[dict[str, Any]]] = {}
 DEFAULT_DIRECTOR_PIN = "1234"
 
 
+def _val(obj: Any) -> str:
+    """Safely extract string value whether obj is an Enum, str, or None."""
+    if obj is None:
+        return ""
+    return obj.value if hasattr(obj, "value") else str(obj)
+
+
+def _is_locked(status_obj: Any) -> bool:
+    """Return True if session is in a permanently locked state (APPROVED or ARCHIVED)."""
+    return _val(status_obj).upper() in ("APPROVED", "ARCHIVED")
+
+
 # ============================================================================
 # Request / Response Schemas
 # ============================================================================
@@ -139,19 +151,20 @@ async def get_review_queue(
 
     queue_items = []
     for s in sessions:
-        if status_filter and s.status.value != status_filter:
+        s_status = _val(s.status)
+        if status_filter and s_status != status_filter:
             continue
 
         item_comments = _ROW_COMMENTS_STORE.get(s.id, [])
         queue_items.append({
             "id": s.id,
             "session_number": s.session_number,
-            "status": s.status.value,
-            "compliance_status": s.overall_compliance.value,
-            "stage": s.verification_stage.value,
+            "status": s_status,
+            "compliance_status": _val(s.overall_compliance) or "PENDING",
+            "stage": _val(s.verification_stage) or "INITIAL_TYPE_APPROVAL",
             "operator_id": s.operator_id,
             "reviewer_id": s.reviewer_id,
-            "is_locked": s.status in (TestSessionStatus.APPROVED, TestSessionStatus.ARCHIVED),
+            "is_locked": _is_locked(s.status),
             "comments_count": len(item_comments),
             "flagged_count": sum(1 for c in item_comments if c.get("severity") in ("FLAG", "REJECT_REASON")),
             "created_at": s.created_at.isoformat() if s.created_at else None,
@@ -178,7 +191,7 @@ async def submit_for_review(
             detail=f"Test session {session_id} not found.",
         )
 
-    if session_obj.status in (TestSessionStatus.APPROVED, TestSessionStatus.ARCHIVED):
+    if _is_locked(session_obj.status):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Session is permanently locked and cannot be resubmitted.",
@@ -199,7 +212,7 @@ async def submit_for_review(
 
     return {
         "session_id": session_id,
-        "old_status": old_status.value,
+        "old_status": _val(old_status),
         "new_status": TestSessionStatus.PENDING_REVIEW.value,
         "message": "Session submitted for technical review.",
     }
@@ -220,7 +233,7 @@ async def remand_session(
             detail=f"Test session {session_id} not found.",
         )
 
-    if session_obj.status in (TestSessionStatus.APPROVED, TestSessionStatus.ARCHIVED):
+    if _is_locked(session_obj.status):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Session is permanently locked and cannot be remanded.",
@@ -243,7 +256,7 @@ async def remand_session(
 
     return {
         "session_id": session_id,
-        "old_status": old_status.value,
+        "old_status": _val(old_status),
         "new_status": "REMANDED",
         "remand_reason": payload.remand_reason,
         "reviewer": payload.reviewer_name,
@@ -322,7 +335,7 @@ async def director_sign(
             detail=f"Test session {session_id} not found.",
         )
 
-    if session_obj.status in (TestSessionStatus.APPROVED, TestSessionStatus.ARCHIVED):
+    if _is_locked(session_obj.status):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Session has already been digitally signed and permanently locked.",
@@ -333,8 +346,8 @@ async def director_sign(
     session_data = {
         "session_id": session_id,
         "session_number": session_obj.session_number,
-        "stage": session_obj.verification_stage.value,
-        "compliance": session_obj.overall_compliance.value,
+        "stage": _val(session_obj.verification_stage) or "INITIAL_TYPE_APPROVAL",
+        "compliance": _val(session_obj.overall_compliance) or "PENDING",
         "signed_at": datetime.now(timezone.utc).isoformat(),
         "director": payload.director_name,
     }

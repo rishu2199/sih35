@@ -418,6 +418,30 @@ def get_authority_signer() -> EcdsaCryptoSigner:
         except Exception:
             pass
 
+    # Check environment variable for cloud/stateless environments (e.g., Render, Docker)
+    pem_env = os.environ.get("LAB_PRIVATE_KEY_PEM")
+    if pem_env:
+        try:
+            _DEFAULT_SIGNER = EcdsaCryptoSigner.from_pem(pem_env.strip().encode("utf-8"))
+            return _DEFAULT_SIGNER
+        except Exception:
+            pass
+
     # Generate new high-entropy authority keypair
     _DEFAULT_SIGNER = EcdsaCryptoSigner()
+
+    # Automatically persist to disk so subsequent restarts use the identical keypair
+    try:
+        abs_priv = os.path.abspath(priv_path)
+        os.makedirs(os.path.dirname(abs_priv), exist_ok=True)
+        with open(abs_priv, "wb") as f:
+            f.write(_DEFAULT_SIGNER.export_private_key_pem().encode("utf-8"))
+        pub_path = settings.LAB_PUBLIC_KEY_PATH
+        abs_pub = os.path.abspath(pub_path)
+        os.makedirs(os.path.dirname(abs_pub), exist_ok=True)
+        with open(abs_pub, "wb") as f:
+            f.write(_DEFAULT_SIGNER.export_public_key_pem().encode("utf-8"))
+    except Exception:
+        pass
+
     return _DEFAULT_SIGNER

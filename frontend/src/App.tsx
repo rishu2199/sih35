@@ -18,6 +18,7 @@ import { ReportRepositoryView } from './features/reports';
 import { LoginScreen } from './features/auth/LoginScreen';
 import { JuryDemoAssistant } from './components/ui/JuryDemoAssistant';
 import { LockoutBanner } from './components/ui/LockoutBanner';
+import { VerificationSessionHeader } from './components/layout/VerificationSessionHeader';
 import {
   Weight,
   FileCheck2,
@@ -162,6 +163,12 @@ const MainLayout: React.FC = () => {
                 {activeLab.code}
               </span>
             </div>
+
+            {/* Persistent Verification Case Header & Testing Protocol Stepper */}
+            <VerificationSessionHeader
+              currentTab={currentTab}
+              onNavigateToTab={(tab) => setCurrentTab(tab)}
+            />
 
             {currentTab === 'dashboard' && (
               <LabDashboard

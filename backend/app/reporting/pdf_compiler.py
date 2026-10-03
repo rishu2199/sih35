@@ -76,7 +76,9 @@ def _initialize_fonts() -> tuple[str, str, str, str]:
     if _FONT_INITIALIZED:
         return FONT_NORMAL, FONT_BOLD, FONT_DEVANAGARI, FONT_DEVANAGARI_BOLD
 
+    bundled_font = os.path.join(os.path.dirname(__file__), "fonts", "NotoSansDevanagari-Regular.ttf")
     devanagari_font_candidates = [
+        (bundled_font, bundled_font),
         ("C:/Windows/Fonts/mangal.ttf", "C:/Windows/Fonts/mangalb.ttf"),
         ("C:/Windows/Fonts/aparaj.ttf", "C:/Windows/Fonts/aparajb.ttf"),
         ("/usr/share/fonts/truetype/noto/NotoSansDevanagari-Regular.ttf",

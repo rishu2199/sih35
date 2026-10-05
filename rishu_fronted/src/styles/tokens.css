@@ -1,0 +1,29 @@
+:root {
+  color-scheme: light;
+  --color-canvas: #f6f8fb;
+  --color-surface: #ffffff;
+  --color-surface-subtle: #f8fafc;
+  --color-border: #e4e8ef;
+  --color-border-strong: #cbd5e1;
+  --color-ink: #172033;
+  --color-secondary: #596579;
+  --color-muted: #7a8699;
+  --color-navy: #172554;
+  --color-blue: #2563eb;
+  --color-blue-hover: #1d4ed8;
+  --color-pass: #059669;
+  --color-pass-bg: #ecfdf5;
+  --color-warning: #d97706;
+  --color-warning-bg: #fffbeb;
+  --color-fail: #dc2626;
+  --color-fail-bg: #fef2f2;
+  --color-pending: #6366f1;
+  --color-pending-bg: #eef2ff;
+  --font-ui: Inter, "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-technical: "IBM Plex Mono", "Cascadia Code", Consolas, monospace;
+  --radius-control: 8px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
+  --shadow-subtle: 0 8px 30px rgb(23 37 84 / 4%);
+  --shadow-overlay: 0 16px 42px rgb(23 37 84 / 16%);
+}

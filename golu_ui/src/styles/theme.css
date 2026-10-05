@@ -1,0 +1,46 @@
+/**
+ * METROLOGIX-76 Theme System (§2, §3)
+ * Dark mode tokens mapping semantic variables while preserving strict contrast.
+ */
+
+.dark {
+  --bg: #0B0F19;
+  --surface: #111827;
+  --surface-subtle: #1F2937;
+
+  --border: #1F2937;
+  --border-strong: #374151;
+
+  --text-primary: #F9FAFB;
+  --text-secondary: #9CA3AF;
+  --text-muted: #6B7280;
+
+  --navy: #1E3A8A;
+  --blue: #3B82F6;
+  --blue-hover: #2563EB;
+  --purple-authority: #A855F7;
+
+  --pass: #10B981;
+  --pass-bg: rgba(6, 78, 59, 0.35);
+  --pass-border: #065F46;
+  --pass-text: #6EE7B7;
+
+  --warning: #F59E0B;
+  --warning-bg: rgba(120, 53, 15, 0.35);
+  --warning-border: #92400E;
+  --warning-text: #FCD34D;
+
+  --fail: #EF4444;
+  --fail-bg: rgba(127, 29, 29, 0.35);
+  --fail-border: #991B1B;
+  --fail-text: #FCA5A5;
+
+  --pending: #818CF8;
+  --pending-bg: rgba(49, 46, 129, 0.35);
+  --pending-border: #3730A3;
+  --pending-text: #C7D2FE;
+
+  --shadow-subtle: 0 1px 3px 0 rgb(0 0 0 / 0.3);
+  --shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.3);
+  --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.6), 0 8px 10px -6px rgb(0 0 0 / 0.5);
+}

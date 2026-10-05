@@ -1,0 +1,70 @@
+/**
+ * METROLOGIX-76 Design System Tokens (§2, §3, §8, §9)
+ * Centralized CSS custom properties for Government Legal Metrology Laboratory operating system.
+ */
+
+:root {
+  /* Foundation Colors (§3) */
+  --bg: #F6F8FB;
+  --surface: #FFFFFF;
+  --surface-subtle: #F8FAFC;
+
+  --border: #E4E8EF;
+  --border-strong: #CBD5E1;
+
+  --text-primary: #172033;
+  --text-secondary: #596579;
+  --text-muted: #7A8699;
+
+  --navy: #172554;
+  --blue: #2563EB;
+  --blue-hover: #1D4ED8;
+  --purple-authority: #7E22CE;
+
+  /* Compliance Semantic States (§3, §4, §14) */
+  --pass: #059669;
+  --pass-bg: #ECFDF5;
+  --pass-border: #A7F3D0;
+  --pass-text: #065F46;
+
+  --warning: #D97706;
+  --warning-bg: #FFFBEB;
+  --warning-border: #FDE68A;
+  --warning-text: #92400E;
+
+  --fail: #DC2626;
+  --fail-bg: #FEF2F2;
+  --fail-border: #FECACA;
+  --fail-text: #991B1B;
+
+  --pending: #6366F1;
+  --pending-bg: #EEF2FF;
+  --pending-border: #C7D2FE;
+  --pending-text: #3730A3;
+
+  /* Typography Fonts (§5) */
+  --font-ui: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'IBM Plex Mono', SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  /* Spacing Rhythm (§7) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  /* Radii Geometry (§8) */
+  --radius-button: 8px;
+  --radius-input: 8px;
+  --radius-card: 12px;
+  --radius-panel: 16px;
+  --radius-modal: 16px;
+  --radius-pill: 9999px;
+
+  /* Shadow Elevation (§9) */
+  --shadow-none: none;
+  --shadow-subtle: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+  --shadow-elevated: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.04);
+  --shadow-modal: 0 20px 25px -5px rgb(0 0 0 / 0.15), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+}

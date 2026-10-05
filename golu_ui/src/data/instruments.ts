@@ -1,0 +1,148 @@
+import { Instrument } from '../types/instrument';
+
+/**
+ * The Four Canonical Statutory Instruments (§19)
+ * Avery Class III, Mettler Class I, Sansui Class II, Essae Class IIII
+ */
+
+export const INSTRUMENT_AVERY_ZM201: Instrument = {
+  id: 'inst-avery-zm201',
+  manufacturer: 'Avery Weigh-Tronix',
+  modelName: 'ZM201 Retail Platform',
+  serialNumber: 'AV-2026-8812',
+  approvalNumber: 'IND/09/2021/318',
+  accuracyClass: 'CLASS_III',
+  maxCapacity: 30.0,
+  minCapacity: 0.1,
+  e: 0.005,
+  d: 0.005,
+  unit: 'kg',
+  n: 6000,
+  receptorType: 'Flat Stainless Steel Platter (350x300mm)',
+  numSupports: 4,
+  verificationStage: 'INITIAL_TYPE_APPROVAL',
+  firmwareVersion: 'v2.4.1-r3',
+  calibrationCounter: 14,
+  status: 'IN_TESTING',
+  complianceStatus: 'PASS',
+};
+
+export const INSTRUMENT_METTLER_XPR: Instrument = {
+  id: 'inst-mettler-xpr',
+  manufacturer: 'Mettler-Toledo',
+  modelName: 'XPR Analytical Micro-Balance',
+  serialNumber: 'MT-2026-0049',
+  approvalNumber: 'IND/12/2023/889',
+  accuracyClass: 'CLASS_I',
+  maxCapacity: 120.0,
+  minCapacity: 0.01,
+  e: 0.001,
+  d: 0.0001,
+  unit: 'g',
+  n: 120000,
+  receptorType: 'Circular Pan with Glass Draft Shield (Ø 90mm)',
+  numSupports: 1,
+  verificationStage: 'INITIAL_TYPE_APPROVAL',
+  firmwareVersion: 'v4.1.0-pro',
+  calibrationCounter: 3,
+  status: 'APPROVED',
+  complianceStatus: 'PASS',
+};
+
+export const INSTRUMENT_SANSUI_GOLDMASTER: Instrument = {
+  id: 'inst-sansui-gm6k',
+  manufacturer: 'Sansui Precision',
+  modelName: 'GoldMaster-6K',
+  serialNumber: 'SN-2026-3391',
+  approvalNumber: 'IND/05/2022/412',
+  accuracyClass: 'CLASS_II',
+  maxCapacity: 6000.0,
+  minCapacity: 5.0,
+  e: 0.1,
+  d: 0.1,
+  unit: 'g',
+  n: 60000,
+  receptorType: 'Square Cast Aluminum Platter (180x180mm)',
+  numSupports: 4,
+  verificationStage: 'SUBSEQUENT_VERIFICATION',
+  firmwareVersion: 'v1.8.2',
+  calibrationCounter: 8,
+  status: 'DRAFT',
+  complianceStatus: 'PENDING',
+};
+
+export const INSTRUMENT_ESSAE_DS215: Instrument = {
+  id: 'inst-essae-ds215',
+  manufacturer: 'Essae-Teraoka',
+  modelName: 'DS-215 Heavy Platform',
+  serialNumber: 'ET-2026-9041',
+  approvalNumber: 'IND/11/2020/190',
+  accuracyClass: 'CLASS_IIII',
+  maxCapacity: 150.0,
+  minCapacity: 2.0,
+  e: 0.05,
+  d: 0.05,
+  unit: 'kg',
+  n: 3000,
+  receptorType: 'Heavy Welded Steel Base (500x500mm)',
+  numSupports: 4,
+  verificationStage: 'SUBSEQUENT_VERIFICATION',
+  firmwareVersion: 'v3.0.1-ind',
+  calibrationCounter: 22,
+  status: 'IN_TESTING',
+  complianceStatus: 'PASS',
+};
+
+export const INSTRUMENT_AVERY_8810: Instrument = {
+  id: 'inst-avery-8810',
+  manufacturer: 'Avery Weigh-Tronix',
+  modelName: 'ZM201 Retail Platform',
+  serialNumber: 'AV-2026-8810',
+  approvalNumber: 'IND/09/2021/318',
+  accuracyClass: 'CLASS_III',
+  maxCapacity: 30.0,
+  minCapacity: 0.1,
+  e: 0.005,
+  d: 0.005,
+  unit: 'kg',
+  n: 6000,
+  receptorType: 'Flat Stainless Steel Platter (350x300mm)',
+  numSupports: 4,
+  verificationStage: 'SUBSEQUENT_VERIFICATION',
+  firmwareVersion: 'v2.4.1-r3',
+  calibrationCounter: 12,
+  status: 'APPROVED',
+  complianceStatus: 'PASS',
+};
+
+export const INSTRUMENT_METTLER_0048: Instrument = {
+  id: 'inst-mettler-0048',
+  manufacturer: 'Mettler-Toledo',
+  modelName: 'XPR Analytical Micro-Balance',
+  serialNumber: 'MT-2026-0048',
+  approvalNumber: 'IND/12/2023/889',
+  accuracyClass: 'CLASS_I',
+  maxCapacity: 120.0,
+  minCapacity: 0.01,
+  e: 0.001,
+  d: 0.0001,
+  unit: 'g',
+  n: 120000,
+  receptorType: 'Circular Pan with Glass Draft Shield (Ø 90mm)',
+  numSupports: 1,
+  verificationStage: 'INITIAL_TYPE_APPROVAL',
+  firmwareVersion: 'v4.1.0-pro',
+  calibrationCounter: 2,
+  status: 'IN_TESTING',
+  complianceStatus: 'PASS',
+};
+
+export const CANONICAL_INSTRUMENTS: Instrument[] = [
+  INSTRUMENT_AVERY_ZM201,
+  INSTRUMENT_METTLER_XPR,
+  INSTRUMENT_SANSUI_GOLDMASTER,
+  INSTRUMENT_ESSAE_DS215,
+  INSTRUMENT_AVERY_8810,
+  INSTRUMENT_METTLER_0048,
+];
+

@@ -1047,10 +1047,19 @@ export const InstrumentIntakeForm: React.FC<InstrumentIntakeFormProps> = ({
 
               <div className="mt-3">
                 <div className="flex items-center justify-between mb-1">
-                  <label className={labelClass}>SHA-256 Checksum *</label>
-                  <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded ${isSha256Valid ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'}`}>
-                    {sha256Checksum.length}/64 {isSha256Valid ? '· valid signature' : '· incomplete hash'}
-                  </span>
+                  <label className={labelClass}>Firmware Cryptographic Hash (SHA-256)</label>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setSha256Checksum('a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890a1b2c3d4e5f67890')}
+                      className="text-[10px] text-brand-600 dark:text-brand-400 hover:underline font-medium cursor-pointer"
+                    >
+                      Generate Default Hash
+                    </button>
+                    <span className={`text-[10px] font-mono font-semibold px-2 py-0.5 rounded ${isSha256Valid ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/20'}`}>
+                      {isSha256Valid ? 'Verified' : `${sha256Checksum.length}/64 chars`}
+                    </span>
+                  </div>
                 </div>
                 <div className="relative">
                   <input

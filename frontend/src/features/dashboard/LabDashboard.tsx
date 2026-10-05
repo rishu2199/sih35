@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import {
   Activity,
   Award,
@@ -9,6 +9,8 @@ import {
   ShieldAlert,
   ShieldCheck,
   Weight,
+  Search,
+  ArrowRight,
 } from 'lucide-react';
 import { useLab } from '../../context/LabContext';
 import { Button } from '../../components/ui/Button';
@@ -35,8 +37,40 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
   // State for lockout inspection modal
   const [isLockoutModalOpen, setIsLockoutModalOpen] = useState(false);
   const [isNewIntakeModalOpen, setIsNewIntakeModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'IN_TESTING' | 'PENDING_REVIEW' | 'LOCKED'>('ALL');
+  const [lowerTab, setLowerTab] = useState<'ACTIVITY' | 'GUIDELINES'>('ACTIVITY');
 
   const mockSessions: TestSessionSummary[] = MOCK_ACTIVE_SESSIONS;
+
+  // Filtered sessions
+  const filteredSessions = useMemo(() => {
+    return mockSessions.filter((s) => {
+      // Status tab filter
+      if (statusFilter === 'IN_TESTING' && s.stage !== 'INITIAL_TYPE_APPROVAL' && s.stage !== 'SUBSEQUENT_VERIFICATION') {
+        if (s.isLocked || s.complianceStatus !== 'PASS') return false;
+      }
+      if (statusFilter === 'PENDING_REVIEW' && s.stage !== 'IN_SERVICE_INSPECTION') {
+        if (s.isLocked) return false;
+      }
+      if (statusFilter === 'LOCKED' && !s.isLocked) {
+        return false;
+      }
+
+      // Search query filter
+      if (searchQuery.trim()) {
+        const q = searchQuery.toLowerCase();
+        return (
+          s.sessionNumber.toLowerCase().includes(q) ||
+          s.instrumentModel.toLowerCase().includes(q) ||
+          s.manufacturer.toLowerCase().includes(q) ||
+          s.serialNumber.toLowerCase().includes(q) ||
+          s.operatorName.toLowerCase().includes(q)
+        );
+      }
+      return true;
+    });
+  }, [mockSessions, statusFilter, searchQuery]);
 
   // Standard Weight Sets Registry Mock Data
   const weightSets = [
@@ -75,6 +109,46 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
       calibratedBy: 'State Weights Lab',
       expiryDays: -35,
       status: 'LOCKED_OUT' as const,
+    },
+  ];
+
+  // Recent Activity Feed
+  const recentActivities = [
+    {
+      id: 'act-1',
+      time: '12 min ago',
+      title: 'Turning Point Observed',
+      detail: 'Step 4 (10,000 g) ΔL recorded for TR-2026-0002',
+      officer: 'Dr. Anand Raman',
+      badge: 'PASS',
+      type: 'success',
+    },
+    {
+      id: 'act-2',
+      time: '28 min ago',
+      title: 'Optical Tilt Verified',
+      detail: 'Spirit level verified concentric (≤ 0.20°) via CV Engine',
+      officer: 'Dr. Anand Raman',
+      badge: 'FORM 01',
+      type: 'info',
+    },
+    {
+      id: 'act-3',
+      time: '45 min ago',
+      title: 'Type Approval Signed',
+      detail: 'Certificate issued for Precision-Pro 30K (Rule 16)',
+      officer: 'Dr. Rajeshwar Sharma',
+      badge: 'APPROVED',
+      type: 'success',
+    },
+    {
+      id: 'act-4',
+      time: '1 hr ago',
+      title: 'Traceability Gate Alert',
+      detail: 'Standard Set WORKSHOP-M2-SET flagged (calibration expired)',
+      officer: 'System Auto-Audit',
+      badge: 'LOCKOUT',
+      type: 'danger',
     },
   ];
 
@@ -144,7 +218,8 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
     {
       key: 'complianceStatus',
       header: 'Verdict',
-      className: 'whitespace-nowrap min-w-[120px]',
+      align: 'center',
+      className: 'whitespace-nowrap min-w-[110px]',
       render: (row) => (
         <ComplianceBadge
           status={row.isLocked ? 'LOCKED_OUT' : row.complianceStatus}
@@ -182,10 +257,10 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
             <Button
               variant="outline"
               size="sm"
-              className="text-xs font-medium"
+              className="text-xs font-semibold bg-brand-50 hover:bg-brand-100 text-brand-700 dark:bg-brand-950/60 dark:hover:bg-brand-900/60 dark:text-brand-300 border border-brand-200 dark:border-brand-800/80 cursor-pointer"
               onClick={() => onNavigateToTesting && onNavigateToTesting()}
             >
-              Worksheet
+              Worksheet →
             </Button>
           )}
         </div>
@@ -195,19 +270,14 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
 
   return (
     <div className="space-y-6 pb-12">
-      {/* Top Banner / Actions Bar */}
+      {/* Top Page Header Bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-1">
         <div>
-          <div className="flex items-center gap-2.5">
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Dashboard
-            </h1>
-            <span className="rounded bg-slate-100 dark:bg-slate-800/90 px-2 py-0.5 text-xs font-mono font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-              {activeLab.code || 'RRSL-BLR'}
-            </span>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+            Laboratory Overview
+          </h1>
           <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-            {activeLab.name} • {activeLab.nablAccreditationNo || 'NABL CC-2849'}
+            {activeLab.name} ({activeLab.code}) • NABL Accreditation {activeLab.nablAccreditationNo || 'CC-2849'}
           </p>
         </div>
 
@@ -235,12 +305,12 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
             }}
             className="text-xs font-medium"
           >
-            New Intake
+            + New Intake
           </Button>
         </div>
       </div>
 
-      {/* Metrological Hard Lockout Alert */}
+      {/* Sleek, High-Priority Statutory Lockout Alert */}
       <LockoutBanner
         weightSetCode="WORKSHOP-M2-SET"
         reasons={['INADEQUATE_WEIGHT_CLASS', 'CALIBRATION_EXPIRED']}
@@ -252,15 +322,15 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
         onViewTraceabilityDetails={() => setIsLockoutModalOpen(true)}
       />
 
-      {/* KPI Stat Cards Grid */}
+      {/* Executive KPI Stat Cards */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
-          title="Active Verifications"
+          title="Active Sessions"
           value={activeTestCount}
           unit="sessions"
           subtitle="2 in testing • 1 in review • 1 locked"
           icon={<Activity className="h-4 w-4" />}
-          change="Live testing"
+          change="Operational"
           status="info"
         />
 
@@ -275,80 +345,117 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
         />
 
         <MetricCard
-          title="Traceability Gate"
+          title="Standards Gate"
           value="1"
-          unit="flagged"
-          subtitle="WORKSHOP-M2-SET locked"
+          unit="set flagged (of 4)"
+          subtitle="WORKSHOP-M2-SET calibration due"
           icon={<Weight className="h-4 w-4" />}
-          change="Lockout active"
+          change="Action required"
           status="danger"
         />
 
         <MetricCard
-          title="Audit Trail Logs"
+          title="Audit Ledger"
           value="1,489"
           unit="records"
           subtitle="Cryptographically sealed entries"
           icon={<ShieldCheck className="h-4 w-4" />}
-          change="Verified"
+          change="Verified 100%"
           status="info"
         />
       </div>
 
-      {/* Active Metrology Test Sessions Section */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between">
+      {/* Primary Section: Active Verification Worklist */}
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 space-y-4">
+        {/* Table Header & Segmented Filter Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-              <Scale className="w-4 h-4 text-brand-500" />
-              <span>Active Test Sessions</span>
-            </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Instruments currently undergoing evaluation and verification under OIML R 76-1.
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <Scale className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+              <span>Active Verification Worklist</span>
+            </h2>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Instruments currently undergoing evaluation and certification under OIML R 76-1.
             </p>
           </div>
-          <span className="text-xs text-slate-500 dark:text-slate-400">
-            {mockSessions.length} total sessions
-          </span>
+
+          <div className="flex items-center gap-2">
+            {/* Quick Search */}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search session, serial..."
+                className="pl-8 pr-3 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/60 text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-hidden focus:ring-1 focus:ring-blue-500 focus:border-blue-500 w-48 sm:w-56"
+              />
+            </div>
+
+            {/* Quick Segmented Filter */}
+            <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-100/80 dark:bg-slate-900/60 p-0.5 text-xs">
+              <button
+                onClick={() => setStatusFilter('ALL')}
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  statusFilter === 'ALL'
+                    ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                All ({mockSessions.length})
+              </button>
+              <button
+                onClick={() => setStatusFilter('LOCKED')}
+                className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                  statusFilter === 'LOCKED'
+                    ? 'bg-white dark:bg-slate-800 text-rose-600 dark:text-rose-400 shadow-xs'
+                    : 'text-slate-500 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                Locked (1)
+              </button>
+            </div>
+          </div>
         </div>
 
+        {/* Data Table */}
         <DataTable
           columns={sessionColumns}
-          data={mockSessions}
+          data={filteredSessions}
           keyExtractor={(item) => item.id}
         />
       </div>
 
-      {/* Standard Weights Registry & Physical Standards Traceability Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Physical Standards Inventory */}
-        <div className="lg:col-span-2 rounded-lg border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-[#0c121e] p-5 flex flex-col justify-between space-y-4">
+      {/* Balanced Lower Grid: Standard Weights (60%) + Activity & Guidelines (40%) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        {/* Left Column (7 cols): Reference Standard Weights (Clause 3.7.1) */}
+        <div className="lg:col-span-7 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 flex flex-col justify-between space-y-4">
           <div>
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/60">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
               <div>
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  <Weight className="w-4 h-4 text-brand-600 dark:text-brand-400" />
+                  <Weight className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                   <span>Reference Standard Weights</span>
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                  Traceable to National Prototype via NPL India & RRSL (OIML R 111-1).
+                  Traceable to CSIR-NPL India Primary Prototype (OIML R 111-1).
                 </p>
               </div>
-              <span className="rounded bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-mono font-medium text-slate-600 dark:text-slate-400">
-                4 registered sets
+              <span className="rounded-md bg-slate-100 dark:bg-slate-800/80 px-2 py-0.5 text-xs font-mono font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                4 Registered Sets
               </span>
             </div>
 
-            <div className="divide-y divide-slate-100 dark:divide-slate-800/50">
+            <div className="divide-y divide-slate-100 dark:divide-slate-800/60 mt-1">
               {weightSets.map((ws) => (
                 <div
                   key={ws.id}
                   onClick={() => setIsLockoutModalOpen(true)}
-                  className="py-3 flex items-center justify-between gap-3 group cursor-pointer transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/20 -mx-2 px-2 rounded-md"
+                  className="py-3 flex items-center justify-between gap-3 group cursor-pointer transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-800/30 -mx-2 px-2 rounded-lg"
                 >
                   <div className="space-y-0.5 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="font-mono text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">
+                      <span className="font-mono text-xs font-semibold text-slate-900 dark:text-slate-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                         {ws.code}
                       </span>
                       <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
@@ -384,55 +491,108 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
             </div>
           </div>
 
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
             <span>All standards monitored under NABL ISO/IEC 17025 surveillance</span>
             <button
               onClick={() => setIsLockoutModalOpen(true)}
-              className="text-brand-600 dark:text-brand-400 hover:underline font-medium cursor-pointer"
+              className="text-blue-600 dark:text-blue-400 hover:underline font-medium cursor-pointer inline-flex items-center gap-1"
             >
-              Audit Traceability &rarr;
+              <span>Audit Traceability</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Verification Directives & Statutory Reference */}
-        <div className="rounded-lg border border-slate-200/90 dark:border-slate-800/90 bg-white dark:bg-[#0c121e] p-5 flex flex-col justify-between space-y-4">
-          <div className="space-y-4">
-            <div className="pb-3 border-b border-slate-100 dark:border-slate-800/60">
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                <span>Statutory Guidelines</span>
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-                Core regulatory requirements under Legal Metrology Act, 2009.
-              </p>
+        {/* Right Column (5 cols): Activity Stream & Regulatory Directives */}
+        <div className="lg:col-span-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-5 flex flex-col justify-between space-y-4">
+          <div>
+            {/* Header with Switcher */}
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800/80">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setLowerTab('ACTIVITY')}
+                  className={`text-xs font-bold transition-colors cursor-pointer ${
+                    lowerTab === 'ACTIVITY'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-1 -mb-3'
+                      : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Live Activity Log
+                </button>
+                <button
+                  onClick={() => setLowerTab('GUIDELINES')}
+                  className={`text-xs font-bold transition-colors cursor-pointer ml-3 ${
+                    lowerTab === 'GUIDELINES'
+                      ? 'text-blue-600 dark:text-blue-400 border-b-2 border-blue-600 dark:border-blue-400 pb-1 -mb-3'
+                      : 'text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  Statutory Directives
+                </button>
+              </div>
+
+              <span className="text-[10px] font-mono text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                Live Feed
+              </span>
             </div>
 
-            <div className="space-y-3 text-xs text-slate-600 dark:text-slate-400">
-              <div className="border-l-2 border-emerald-500 pl-3 space-y-0.5">
-                <p className="font-semibold text-slate-900 dark:text-slate-200">1. Standard Uncertainty (Clause 3.7.1)</p>
-                <p className="text-[11px] leading-relaxed">
-                  Weight uncertainty U must satisfy U &le; &frac13; MPE of the scale under test.
-                </p>
+            {/* Tab 1: Live Activity Stream */}
+            {lowerTab === 'ACTIVITY' ? (
+              <div className="space-y-3 mt-3">
+                {recentActivities.map((act) => (
+                  <div
+                    key={act.id}
+                    className="p-3 rounded-lg border border-slate-100 dark:border-slate-800/60 bg-slate-50/60 dark:bg-slate-900/40 text-xs space-y-1 hover:border-slate-200 dark:hover:border-slate-700 transition-colors"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-slate-800 dark:text-slate-200">
+                        {act.title}
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400">
+                        {act.time}
+                      </span>
+                    </div>
+                    <p className="text-slate-600 dark:text-slate-400 text-[11px] leading-relaxed">
+                      {act.detail}
+                    </p>
+                    <div className="flex items-center justify-between pt-1 text-[10px] text-slate-500 dark:text-slate-500 font-mono">
+                      <span>{act.officer}</span>
+                      <span className="px-1.5 py-0.2 rounded bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold">
+                        {act.badge}
+                      </span>
+                    </div>
+                  </div>
+                ))}
               </div>
+            ) : (
+              /* Tab 2: Core Regulatory Requirements */
+              <div className="space-y-3 mt-3 text-xs">
+                <div className="border-l-2 border-emerald-500 pl-3 space-y-0.5">
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">1. Standard Uncertainty (Clause 3.7.1)</p>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Standard weight expanded uncertainty U must satisfy U &le; &frac13; MPE of the scale under test.
+                  </p>
+                </div>
 
-              <div className="border-l-2 border-brand-500 pl-3 space-y-0.5">
-                <p className="font-semibold text-slate-900 dark:text-slate-200">2. Separation of Duties</p>
-                <p className="text-[11px] leading-relaxed">
-                  Testing officers cannot self-approve. Certificates require designated Authority signature.
-                </p>
-              </div>
+                <div className="border-l-2 border-brand-500 pl-3 space-y-0.5">
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">2. Separation of Duties (Rule 16)</p>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                    Testing officers cannot self-approve. Certificates require designated Lab Director signature.
+                  </p>
+                </div>
 
-              <div className="border-l-2 border-indigo-500 pl-3 space-y-0.5">
-                <p className="font-semibold text-slate-900 dark:text-slate-200">3. Cryptographic Logging</p>
-                <p className="text-[11px] leading-relaxed">
-                  All observations are immutably signed and timestamped with SHA-256 hash chaining.
-                </p>
+                <div className="border-l-2 border-indigo-500 pl-3 space-y-0.5">
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">3. Cryptographic Logging</p>
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+                    All observations are immutably signed and timestamped with SHA-256 hash chaining under Section 24.
+                  </p>
+                </div>
               </div>
-            </div>
+            )}
           </div>
 
-          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60">
+          <div className="pt-3 border-t border-slate-100 dark:border-slate-800/80">
             <Button
               variant="outline"
               size="sm"
@@ -440,12 +600,11 @@ export const LabDashboard: React.FC<LabDashboardProps> = ({
               leftIcon={<FileText className="w-3.5 h-3.5" />}
               onClick={() => setIsLockoutModalOpen(true)}
             >
-              Traceability Standards
+              View Statutory Verification Standards
             </Button>
           </div>
         </div>
       </div>
-
 
       {/* Statutory Lockout Inspection Modal */}
       <Modal

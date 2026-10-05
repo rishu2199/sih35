@@ -95,15 +95,15 @@ export const LiveBridge: React.FC<LiveBridgeProps> = ({
             </div>
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                  LiveBridge IoT Telemetry Gateway
+                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 font-display">
+                  Scale Telemetry Gateway
                 </h1>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
-                  W3C WebSerial • 9600-8-N-1
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono font-medium bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  {isConnected ? 'Hardware Serial Link' : 'Virtual Simulator Link'}
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                Direct RS-232 / USB industrial indicator connection with statutory WELMEC 7.2 audit trail counter verification.
+                Direct RS-232 / USB scale connection with statutory WELMEC 7.2 software verification.
               </p>
             </div>
           </div>
@@ -374,34 +374,34 @@ export const LiveBridge: React.FC<LiveBridgeProps> = ({
 
             {/* Quick Command Presets Ribbon */}
             <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900/60 border-t border-slate-800/80 overflow-x-auto text-[10px] font-mono">
-              <span className="text-slate-500 mr-0.5">Quick:</span>
+              <span className="text-slate-400 mr-0.5">Quick Commands:</span>
               <button
                 type="button"
                 onClick={() => sendSerialCommand('S')}
-                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 hover:text-white transition-colors cursor-pointer"
+                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:text-white transition-colors cursor-pointer"
               >
-                S (Weight)
+                Read (S)
               </button>
               <button
                 type="button"
                 onClick={() => sendSerialCommand('Z')}
-                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 hover:text-white transition-colors cursor-pointer"
+                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:text-white transition-colors cursor-pointer"
               >
-                Z (Zero)
+                Zero (Z)
               </button>
               <button
                 type="button"
                 onClick={() => sendSerialCommand('T')}
-                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 hover:text-white transition-colors cursor-pointer"
+                className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 hover:text-white transition-colors cursor-pointer"
               >
-                T (Tare)
+                Tare (T)
               </button>
               <button
                 type="button"
                 onClick={() => sendSerialCommand('I4')}
                 className="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 hover:text-emerald-300 transition-colors cursor-pointer"
               >
-                I4 (WELMEC)
+                Audit (I4)
               </button>
             </div>
 

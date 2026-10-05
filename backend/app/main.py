@@ -59,6 +59,7 @@ app.add_middleware(
 
 # Route Handlers
 app.include_router(auth_router, prefix="/api/auth", tags=["Authentication & RBAC"])
+app.include_router(auth_router, prefix="/api/v1/auth", tags=["Authentication & RBAC (v1)"])
 app.include_router(intake_router, prefix="/api/v1/intake", tags=["Instrument Intake & OCR"])
 app.include_router(ingestion_router, prefix="/api/v1/ingestion", tags=["Legacy Excel Ingestion & Migration"])
 app.include_router(ingestion_router, prefix="/api/ingestion", tags=["Legacy Excel Ingestion & Migration (Direct)"])

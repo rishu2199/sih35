@@ -419,7 +419,7 @@ export const TareTempView: React.FC<TareTempViewProps> = ({
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100 flex items-center gap-2.5">
             <ThermometerSnowflake className="w-6 h-6 text-brand-600 dark:text-brand-400" />
-            <span>Tare Mechanism &amp; Environmental Temperature Drift Engine</span>
+            <span>Tare &amp; Environmental Drift</span>
           </h1>
           <div className="flex flex-wrap items-center gap-2 mt-1.5 text-xs text-slate-500 dark:text-slate-400">
             <span className="font-medium text-slate-700 dark:text-slate-300">{modelName}</span>

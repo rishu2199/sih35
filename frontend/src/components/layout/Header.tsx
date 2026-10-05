@@ -36,12 +36,11 @@ export const Header: React.FC<HeaderProps> = ({
   isJuryAssistantOpen = false,
 }) => {
   const { theme, toggleTheme } = useTheme();
-  const { activeLab, setActiveLab, currentUser, setUserRole, isOnline, logout } = useLab();
+  const { activeLab, setActiveLab, currentUser, setUserRole, logout } = useLab();
   const { activeScenario, allScenarios, loadScenario } = useScenario();
   const { currentWeight, isStable, unit } = useIoT();
   const [isScenarioDropdownOpen, setIsScenarioDropdownOpen] = useState(false);
   const [isLabDropdownOpen, setIsLabDropdownOpen] = useState(false);
-
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false);
 
   const getScenarioIcon = (id: string) => {
@@ -73,88 +72,80 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const roles: { role: UserRole; title: string; color: string }[] = [
-    { role: 'METROLOGIST', title: 'Testing Officer (Metrologist)', color: 'bg-indigo-500' },
-    { role: 'REVIEWER', title: 'Principal Scientific Officer (Reviewer)', color: 'bg-teal-500' },
-    { role: 'DIRECTOR', title: 'Director / Lab Head (Issuing Authority)', color: 'bg-purple-500' },
-    { role: 'AUDITOR', title: 'DoCA Inspector (Auditor - Read Only)', color: 'bg-amber-500' },
-    { role: 'ADMIN', title: 'National System Administrator', color: 'bg-rose-500' },
+  const roles: { role: UserRole; title: string }[] = [
+    { role: 'METROLOGIST', title: 'Testing Officer (Metrologist)' },
+    { role: 'REVIEWER',    title: 'Principal Scientific Officer (Reviewer)' },
+    { role: 'DIRECTOR',    title: 'Director / Lab Head (Issuing Authority)' },
+    { role: 'AUDITOR',     title: 'DoCA Inspector (Auditor — Read Only)' },
+    { role: 'ADMIN',       title: 'National System Administrator' },
   ];
 
+  const roleColors: Record<string, string> = {
+    METROLOGIST: 'bg-brand-700',
+    REVIEWER:    'bg-teal-600',
+    DIRECTOR:    'bg-gold-700',
+    AUDITOR:     'bg-amber-600',
+    ADMIN:       'bg-rose-600',
+  };
+
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-slate-200/80 dark:border-white/[0.08] glass-header transition-colors">
-      <div className="flex h-16 items-center justify-between px-4 sm:px-6">
-        {/* Left Section: Mobile Menu + Emblem + Branding */}
-        <div className="flex items-center gap-3.5">
+    <header className="sticky top-0 z-40 w-full h-15 border-b border-slate-200/90 dark:border-slate-800/80 bg-white/95 dark:bg-[#0d131f]/95 backdrop-blur-md transition-colors shrink-0">
+      <div className="flex h-15 items-center justify-between px-4 sm:px-6">
+
+        {/* Left: Mobile Menu + Emblem + Brand */}
+        <div className="flex items-center gap-3">
           {onToggleSidebar && (
             <button
               onClick={onToggleSidebar}
-              className="lg:hidden rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800/80 cursor-pointer"
-              aria-label="Toggle navigation menu"
+              className="lg:hidden rounded-lg p-2 text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+              aria-label="Toggle navigation"
             >
               <Menu className="w-5 h-5" />
             </button>
           )}
 
-          {/* Government of India Official Emblem & Platform Brand */}
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-900 dark:bg-slate-800 text-white border border-slate-700/60 shadow-xs">
-              <span className="text-[11px] font-mono font-bold tracking-tight text-amber-400">
-                DoCA
-              </span>
+          {/* National Legal Metrology Brand */}
+          <div className="flex items-center gap-3 select-none">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-700 dark:bg-blue-600 text-white shadow-xs">
+              <Scale className="w-5 h-5" />
             </div>
 
-            <div className="hidden sm:block">
-              <div className="flex items-center gap-1.5 leading-none">
-                <span className="text-[10px] font-semibold tracking-wider text-slate-500 dark:text-slate-400 uppercase">
-                  Govt. of India
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-base font-bold tracking-tight text-slate-900 dark:text-white font-sans">
+                  METROLOGIX<span className="text-blue-600 dark:text-blue-400 font-extrabold">-76</span>
                 </span>
-                <span className="text-slate-300 dark:text-slate-600 text-[10px]">•</span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 font-devanagari">
-                  उपभोक्ता मामले
-                </span>
-              </div>
-              <div className="mt-1 flex items-center gap-2">
-                <span className="text-sm font-bold tracking-tight text-slate-900 dark:text-slate-100">
-                  METROLOGIX-76
-                </span>
-                <span className="rounded bg-slate-100 dark:bg-slate-800/80 px-1.5 py-0.5 text-[10px] font-mono font-medium text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
+                <span className="rounded px-2 py-0.5 text-[10px] font-mono font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                   OIML R 76
                 </span>
               </div>
+              <p className="text-[11px] text-slate-400 dark:text-slate-500 font-medium tracking-wide uppercase hidden sm:block">
+                Dept. of Consumer Affairs • Legal Metrology
+              </p>
             </div>
           </div>
         </div>
 
-        {/* Center / Right Section: Live Telemetry, Scenario Selector, Lab Switcher, Sync Indicator, Profile, Theme Toggle */}
-        <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* LiveBridge Scale Telemetry Pill */}
+        {/* Right: Controls & Actions */}
+        <div className="flex items-center gap-2.5">
+
+          {/* Scale Telemetry Pill */}
           <button
             onClick={() => onNavigateToTab && onNavigateToTab('live_bridge')}
-            title="Scale Telemetry LiveBridge"
-            className="hidden md:flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/[0.08] bg-slate-50 dark:bg-slate-800/60 px-3 py-1.5 text-xs font-mono transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer shadow-xs"
+            title="Inspect Live Scale Telemetry Bridge"
+            className="hidden md:inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900/60 px-3 py-1.5 text-xs font-mono transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
           >
-            <span
-              className={`w-2 h-2 rounded-full ${
-                isStable ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
-              }`}
-            />
-            <span className="tabular-nums font-semibold text-slate-900 dark:text-slate-100">
-              {currentWeight.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 3 })}{' '}
-              {unit}
+            <span className={`w-2 h-2 rounded-full ${isStable ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'}`} />
+            <span className="text-slate-500 dark:text-slate-400 font-sans text-xs">Scale:</span>
+            <span className="tabular-nums font-semibold text-slate-800 dark:text-slate-200">
+              {currentWeight.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 3 })} {unit}
             </span>
-            <span
-              className={`text-[9px] px-1.5 py-0.2 rounded font-semibold ${
-                isStable
-                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300'
-                  : 'bg-amber-500/10 text-amber-700 dark:text-amber-300'
-              }`}
-            >
+            <span className={`text-[10px] font-bold ${isStable ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`}>
               {isStable ? 'STABLE' : 'MOTION'}
             </span>
           </button>
 
-          {/* Synthetic Metrological Scenario Selector Dropdown */}
+          {/* Scenario Selector */}
           <div className="relative">
             <button
               onClick={() => {
@@ -162,63 +153,51 @@ export const Header: React.FC<HeaderProps> = ({
                 setIsLabDropdownOpen(false);
                 setIsRoleDropdownOpen(false);
               }}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-slate-800/60 px-3 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors shadow-xs cursor-pointer"
+              className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              <Sparkles className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400 shrink-0" />
-              <span className="max-w-[120px] sm:max-w-[160px] truncate">
-                {activeScenario ? activeScenario.short_title : 'Demo Scenarios'}
+              <Sparkles className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+              <span className="hidden sm:inline font-medium">Scenarios</span>
+              <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-xs font-mono bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
+                5
               </span>
-              <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             </button>
 
             {isScenarioDropdownOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsScenarioDropdownOpen(false)}
-                />
-                <div className="absolute right-0 mt-2 w-80 sm:w-[410px] rounded-2xl border border-slate-200/90 dark:border-white/[0.1] bg-white dark:bg-[#0c1322] p-2.5 shadow-2xl z-50 animate-in fade-in duration-100">
-                  <div className="px-3.5 py-2.5 border-b border-slate-100 dark:border-white/[0.08] flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white">
-                      OIML R 76-1 Test Scenarios
-                    </span>
-                    <span className="text-[10px] text-slate-400 font-mono">
-                      5 Presets
-                    </span>
+                <div className="fixed inset-0 z-40" onClick={() => setIsScenarioDropdownOpen(false)} />
+                <div className="absolute right-0 mt-2 w-80 sm:w-[380px] rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-2.5 shadow-xl z-50">
+                  <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-semibold text-slate-900 dark:text-white">OIML R 76-1 Test Scenarios</span>
+                    <span className="text-xs text-slate-400 font-mono">5 Presets</span>
                   </div>
-
-                  <div className="max-h-80 overflow-y-auto py-1 space-y-1">
+                  <div className="max-h-72 overflow-y-auto py-1 space-y-0.5 mt-1">
                     {allScenarios.map((sc) => {
                       const isSelected = activeScenario?.id === sc.id;
-
                       return (
                         <button
                           key={sc.id}
                           onClick={() => handleScenarioSelect(sc.id)}
-                          className={`w-full flex items-start gap-2.5 rounded-xl p-2.5 text-left text-xs transition-colors border cursor-pointer ${
+                          className={`w-full flex items-start gap-2.5 rounded-lg p-2.5 text-left text-xs sm:text-sm transition-colors border cursor-pointer ${
                             isSelected
-                              ? 'bg-brand-500/10 dark:bg-brand-500/[0.14] border-brand-500/40 text-brand-900 dark:text-brand-100 font-medium'
-                              : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                              ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-200 dark:border-blue-800/50 text-blue-900 dark:text-blue-100'
+                              : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                           }`}
                         >
                           <div className="mt-0.5 shrink-0">{getScenarioIcon(sc.id)}</div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center justify-between gap-1">
-                              <span className="font-semibold text-xs truncate">{sc.title}</span>
-                              <span
-                                className={`shrink-0 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase ${
-                                  sc.expected_verdict === 'PASS'
-                                    ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
-                                    : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30'
-                                }`}
-                              >
+                              <span className="font-semibold truncate">{sc.title}</span>
+                              <span className={`shrink-0 text-[10px] font-mono font-bold px-1.5 py-0.5 rounded border uppercase ${
+                                sc.expected_verdict === 'PASS'
+                                  ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border-emerald-500/30'
+                                  : 'bg-rose-500/10 text-rose-700 dark:text-rose-400 border-rose-500/30'
+                              }`}>
                                 {sc.expected_verdict}
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">
-                              {sc.highlight_aspect}
-                            </p>
-                            <div className="mt-1 flex items-center gap-2 text-[10px] font-mono text-slate-400 dark:text-slate-500">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1 mt-0.5">{sc.highlight_aspect}</p>
+                            <div className="mt-1 flex items-center gap-2 text-xs font-mono text-slate-400 dark:text-slate-500">
                               <span>Class {sc.accuracy_class}</span>
                               <span>•</span>
                               <span>{sc.observations_count} tests</span>
@@ -233,7 +212,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Active Laboratory Dropdown */}
+          {/* Lab Switcher */}
           <div className="relative">
             <button
               onClick={() => {
@@ -241,54 +220,42 @@ export const Header: React.FC<HeaderProps> = ({
                 setIsRoleDropdownOpen(false);
                 setIsScenarioDropdownOpen(false);
               }}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/[0.08] bg-slate-50/80 dark:bg-[#101828] px-3 py-1.5 text-xs font-semibold text-slate-800 dark:text-slate-200 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800/80 cursor-pointer shadow-subtle"
+              className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 px-3 py-2 text-xs sm:text-sm font-medium text-slate-700 dark:text-slate-300 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer"
             >
-              <Building2 className="w-3.5 h-3.5 text-brand-600 dark:text-brand-400 shrink-0" />
-              <span className="max-w-[110px] sm:max-w-[180px] truncate">{activeLab.code}</span>
-              <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+              <Building2 className="w-4 h-4 text-slate-500 dark:text-slate-400 shrink-0" />
+              <span className="max-w-[90px] sm:max-w-[140px] truncate">{activeLab.code}</span>
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             </button>
 
             {isLabDropdownOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsLabDropdownOpen(false)}
-                />
-                <div className="absolute right-0 mt-2 w-72 sm:w-80 rounded-2xl border border-slate-200/90 dark:border-white/[0.1] bg-white dark:bg-[#0c1322] p-2.5 shadow-2xl z-50 animate-in fade-in duration-100">
-                  <div className="px-3 py-2 text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
+                <div className="fixed inset-0 z-40" onClick={() => setIsLabDropdownOpen(false)} />
+                <div className="absolute right-0 mt-2 w-72 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-2.5 shadow-xl z-50">
+                  <div className="px-3 py-2 text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider border-b border-slate-100 dark:border-slate-800 mb-1">
                     Accredited Metrology Labs
                   </div>
-                  <div className="max-h-72 overflow-y-auto py-1 space-y-1">
+                  <div className="max-h-64 overflow-y-auto py-1 space-y-0.5">
                     {NATIONAL_LABORATORIES.map((lab) => {
                       const isSelected = lab.id === activeLab.id;
                       return (
                         <button
                           key={lab.id}
-                          onClick={() => {
-                            setActiveLab(lab);
-                            setIsLabDropdownOpen(false);
-                          }}
-                          className={`w-full flex items-start gap-2.5 rounded-xl p-2.5 text-left text-xs transition-colors border cursor-pointer ${
+                          onClick={() => { setActiveLab(lab); setIsLabDropdownOpen(false); }}
+                          className={`w-full flex items-start gap-2.5 rounded-lg p-2.5 text-left text-xs sm:text-sm transition-colors border cursor-pointer ${
                             isSelected
-                              ? 'bg-slate-800/80 dark:bg-white/[0.06] border-slate-700/60 dark:border-white/[0.08] text-white font-medium shadow-xs'
-                              : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                              ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-white font-medium'
+                              : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                           }`}
                         >
-                          {isSelected && (
-                            <Check className="w-3.5 h-3.5 text-brand-400 mt-0.5 shrink-0" />
-                          )}
+                          {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />}
                           <div className="flex-1 min-w-0">
                             <div className="flex items-center gap-2">
-                              <span className="font-mono font-bold text-xs text-slate-900 dark:text-slate-100">
-                                {lab.code.includes('-') ? lab.code.replace('-', ' - ') : lab.code}
-                              </span>
-                              <span className="text-[9px] font-mono font-medium px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800/90 text-slate-700 dark:text-slate-400 border border-slate-300 dark:border-slate-700/60">
+                              <span className="font-mono font-semibold text-xs sm:text-sm">{lab.code}</span>
+                              <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700">
                                 {lab.labType}
                               </span>
                             </div>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                              {lab.city}, {lab.state}
-                            </p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{lab.city}, {lab.state}</p>
                           </div>
                         </button>
                       );
@@ -299,15 +266,7 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Sync Status Indicator */}
-          <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 text-xs text-slate-500 dark:text-slate-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span className="text-[11px] font-medium">
-              {isOnline ? 'Online' : 'Offline (Local)'}
-            </span>
-          </div>
-
-          {/* User Role Switcher Dropdown */}
+          {/* User / Role Dropdown */}
           <div className="relative">
             <button
               onClick={() => {
@@ -315,46 +274,33 @@ export const Header: React.FC<HeaderProps> = ({
                 setIsLabDropdownOpen(false);
                 setIsScenarioDropdownOpen(false);
               }}
-              className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#101828] px-2.5 py-1.5 text-xs text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800/80 transition-colors shadow-subtle cursor-pointer"
+              className="flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 px-2.5 py-1.5 text-xs sm:text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             >
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white font-bold text-[10px]">
-                {currentUser.fullName
-                  .split(' ')
-                  .map((n: string) => n[0])
-                  .join('')
-                  .slice(0, 2)}
+              <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${roleColors[currentUser.role] || 'bg-blue-600'} text-white font-bold text-xs`}>
+                {currentUser.fullName.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-bold leading-none text-slate-900 dark:text-slate-100">{currentUser.fullName}</p>
-                <p className="text-[10px] text-brand-600 dark:text-brand-400 font-mono font-bold mt-0.5">
-                  {currentUser.role}
-                </p>
+                <p className="text-xs font-semibold leading-none text-slate-900 dark:text-slate-100">{currentUser.fullName.split(' ')[0]}</p>
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-0.5">{currentUser.role}</p>
               </div>
-              <ChevronDown className="w-3 h-3 text-slate-400 shrink-0" />
+              <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
             </button>
 
             {isRoleDropdownOpen && (
               <>
-                <div
-                  className="fixed inset-0 z-40"
-                  onClick={() => setIsRoleDropdownOpen(false)}
-                />
-                <div className="absolute right-0 mt-2 w-80 rounded-2xl border border-slate-200/90 dark:border-white/[0.1] bg-white dark:bg-[#0c1322] p-2.5 shadow-2xl z-50 animate-in fade-in duration-100">
-                  <div className="px-3 pt-1 pb-3 border-b border-slate-100 dark:border-white/[0.06]">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white">
-                      {currentUser.fullName}
-                    </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">
-                      {currentUser.email}
-                    </p>
+                <div className="fixed inset-0 z-40" onClick={() => setIsRoleDropdownOpen(false)} />
+                <div className="absolute right-0 mt-2 w-72 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] p-2.5 shadow-xl z-50">
+                  <div className="px-3 pt-2 pb-3 border-b border-slate-100 dark:border-slate-800">
+                    <p className="text-sm font-semibold text-slate-900 dark:text-white">{currentUser.fullName}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{currentUser.email}</p>
                     <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 dark:text-emerald-400 shrink-0" />
+                      <ShieldCheck className="w-4 h-4 shrink-0" />
                       <span>Statutory RBAC Active</span>
                     </div>
                   </div>
 
-                  <div className="px-3 py-2 text-[10px] font-mono font-semibold text-slate-400 dark:text-slate-400 uppercase tracking-wider">
-                    Switch Operational Role:
+                  <div className="px-3 py-2 text-xs font-mono font-semibold text-slate-400 uppercase tracking-wider">
+                    Switch Operational Role
                   </div>
 
                   <div className="space-y-1">
@@ -363,35 +309,27 @@ export const Header: React.FC<HeaderProps> = ({
                       return (
                         <button
                           key={role}
-                          onClick={() => {
-                            setUserRole(role);
-                            setIsRoleDropdownOpen(false);
-                          }}
-                          className={`w-full flex items-center justify-between rounded-xl px-3 py-2 text-xs transition-colors border cursor-pointer ${
+                          onClick={() => { setUserRole(role); setIsRoleDropdownOpen(false); }}
+                          className={`w-full flex items-center justify-between rounded-lg px-3 py-2 text-xs sm:text-sm transition-colors border cursor-pointer ${
                             isSelected
-                              ? 'bg-slate-800/80 dark:bg-white/[0.06] border-slate-700/60 dark:border-white/[0.08] text-white font-semibold shadow-xs'
-                              : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800/50'
+                              ? 'bg-blue-50 dark:bg-blue-950/60 border-blue-200 dark:border-blue-800 text-blue-900 dark:text-white font-semibold'
+                              : 'border-transparent text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800/60'
                           }`}
                         >
                           <span className="truncate">{title}</span>
-                          {isSelected && (
-                            <Check className="w-4 h-4 text-brand-400 shrink-0 ml-2" />
-                          )}
+                          {isSelected && <Check className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0 ml-2" />}
                         </button>
                       );
                     })}
                   </div>
 
-                  <div className="pt-2 mt-2 border-t border-slate-100 dark:border-white/[0.06]">
+                  <div className="pt-2 mt-2 border-t border-slate-100 dark:border-slate-800">
                     <button
-                      onClick={() => {
-                        logout();
-                        setIsRoleDropdownOpen(false);
-                      }}
-                      className="w-full flex items-center gap-2 rounded-xl px-3 py-2 text-xs text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors font-medium cursor-pointer"
+                      onClick={() => { logout(); setIsRoleDropdownOpen(false); }}
+                      className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-xs sm:text-sm text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors font-medium cursor-pointer"
                     >
-                      <LogOut className="w-3.5 h-3.5 text-rose-500 dark:text-rose-400 shrink-0" />
-                      <span>Switch Officer / Sign Out</span>
+                      <LogOut className="w-4 h-4 shrink-0" />
+                      <span>Sign Out</span>
                     </button>
                   </div>
                 </div>
@@ -399,32 +337,32 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          {/* Jury Demo Assistant Launcher Button */}
+          {/* Jury Demo Launcher */}
           {onToggleJuryAssistant && (
             <button
               onClick={onToggleJuryAssistant}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg border text-xs sm:text-sm font-medium transition-colors cursor-pointer ${
                 isJuryAssistantOpen
-                  ? 'border-brand-500 bg-brand-500/10 text-brand-700 dark:text-brand-300'
-                  : 'border-slate-200 dark:border-white/[0.08] bg-white dark:bg-slate-800/60 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
+                  ? 'border-amber-500/50 bg-amber-50 dark:bg-amber-950/30 text-amber-700 dark:text-amber-300'
+                  : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
               }`}
-              title="Toggle Presentation & Walkthrough Assistant"
+              title="Toggle Evaluation Demo Guide"
             >
-              <Award className="w-3.5 h-3.5 text-amber-500" />
-              <span className="hidden sm:inline">Demo Guide</span>
+              <Award className="w-4 h-4 text-amber-500 shrink-0" />
+              <span className="hidden sm:inline">Demo</span>
             </button>
           )}
 
-          {/* Theme Toggle Button */}
+          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-[#101828] text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-100 transition-colors shadow-subtle cursor-pointer"
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/80 text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors cursor-pointer"
             aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
           >
             {theme === 'dark' ? (
-              <Sun className="w-4 h-4 text-amber-400 transition-transform duration-200 hover:rotate-45" />
+              <Sun className="w-4 h-4 text-amber-400" />
             ) : (
-              <Moon className="w-4 h-4 text-slate-700 transition-transform duration-200 hover:-rotate-12" />
+              <Moon className="w-4 h-4 text-slate-600" />
             )}
           </button>
         </div>
@@ -432,3 +370,4 @@ export const Header: React.FC<HeaderProps> = ({
     </header>
   );
 };
+

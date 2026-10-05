@@ -22,14 +22,7 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   status = 'info',
   className = '',
 }) => {
-  const statusBorder = {
-    info: 'hover:border-slate-300 dark:hover:border-slate-700',
-    success: 'hover:border-emerald-300 dark:hover:border-emerald-800',
-    danger: 'hover:border-rose-300 dark:hover:border-rose-800',
-    warning: 'hover:border-amber-300 dark:hover:border-amber-800',
-  };
-
-  const statusText = {
+  const statusColors = {
     info: 'text-slate-600 dark:text-slate-400',
     success: 'text-emerald-700 dark:text-emerald-400',
     danger: 'text-rose-700 dark:text-rose-400',
@@ -38,10 +31,10 @@ export const MetricCard: React.FC<MetricCardProps> = ({
 
   return (
     <div
-      className={`rounded-lg border border-slate-200/90 dark:border-slate-800/80 bg-white dark:bg-[#0c121e] p-4 sm:p-5 transition-all duration-150 ${statusBorder[status]} ${className}`}
+      className={`rounded-xl border border-slate-200 dark:border-slate-800/80 bg-white dark:bg-[#111827] p-4 sm:p-5 transition-all hover:border-slate-300 dark:hover:border-slate-700 ${className}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+        <span className="text-xs sm:text-sm font-medium text-slate-500 dark:text-slate-400">
           {title}
         </span>
         {icon && (
@@ -52,11 +45,11 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       </div>
 
       <div className="mt-2.5 flex items-baseline gap-2">
-        <span className="text-2xl sm:text-3xl font-semibold tracking-tight text-slate-900 dark:text-slate-50 font-mono tabular-nums">
+        <span className="text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100 font-mono tabular-nums">
           {value}
         </span>
         {unit && (
-          <span className="text-xs font-normal text-slate-500 dark:text-slate-400">
+          <span className="text-xs sm:text-sm text-slate-500 dark:text-slate-400">
             {unit}
           </span>
         )}
@@ -65,12 +58,12 @@ export const MetricCard: React.FC<MetricCardProps> = ({
       {(subtitle || change) && (
         <div className="mt-3 pt-2.5 border-t border-slate-100 dark:border-slate-800/60 flex items-center justify-between text-xs">
           {subtitle && (
-            <span className="text-slate-500 dark:text-slate-400 text-[11px] truncate">
+            <span className="text-slate-500 dark:text-slate-400 text-xs truncate">
               {subtitle}
             </span>
           )}
           {change && (
-            <span className={`text-[11px] font-medium shrink-0 ml-2 ${statusText[status]}`}>
+            <span className={`text-xs font-semibold shrink-0 ml-2 ${statusColors[status]}`}>
               {change}
             </span>
           )}
@@ -79,4 +72,3 @@ export const MetricCard: React.FC<MetricCardProps> = ({
     </div>
   );
 };
-

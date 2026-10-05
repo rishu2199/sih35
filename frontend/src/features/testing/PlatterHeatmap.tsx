@@ -580,12 +580,12 @@ export const PlatterHeatmap: React.FC<PlatterHeatmapProps> = ({
             </span>
           </div>
 
-          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2.5 mt-1 font-sans">
-            <Crosshair className="w-7 h-7 text-purple-600 dark:text-purple-400" />
-            2D Platter Deflection Heatmap & Corner Loading Engine
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50 flex items-center gap-2.5 mt-1 font-sans">
+            <Crosshair className="w-6 h-6 text-purple-600 dark:text-purple-400" />
+            Platter Deflection Heatmap
           </h1>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            OIML R 76-1:2006 Clause A.4.7 • Legal Metrology (General) Rules 2011 Seventh Schedule Para 9(1)(b)
+            Clause A.4.7 Eccentricity &amp; Corner Loading Verification
           </p>
         </div>
 
@@ -1733,8 +1733,8 @@ export const PlatterHeatmap: React.FC<PlatterHeatmapProps> = ({
                 <FileSpreadsheet className="w-4 h-4 text-brand-500" />
                 Formal OIML R 76-1 Clause A.4.7 Verification Observation Ledger
               </h4>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
-                Full 5-point turning-point calculations: P = I + 0.5e − ΔL • E = P − L • Ec = E − E₀
+              <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                5-point turning-point verification records conforming to OIML R 76-1.
               </p>
             </div>
             <span className="text-[11px] font-mono text-slate-400">

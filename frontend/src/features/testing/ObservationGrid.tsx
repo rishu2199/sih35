@@ -83,6 +83,9 @@ export const ObservationGrid: React.FC<ObservationGridProps> = ({
   // Presentation View Mode: Split (Grid + Corridor), Grid Only, or Corridor Chart Only
   const [viewMode, setViewMode] = useState<'SPLIT' | 'GRID' | 'CHART'>('SPLIT');
 
+  // Column Density: Clean Standard (7 essential cols) vs Detailed Metrologist (12 cols)
+  const [tableDensity, setTableDensity] = useState<'STANDARD' | 'DETAILED'>('STANDARD');
+
   // Active Selected Row for "Inspect Calculation Trace" Modal
   const [selectedTraceRow, setSelectedTraceRow] = useState<ObservationRow | null>(null);
   const [isTraceModalOpen, setIsTraceModalOpen] = useState(false);
@@ -1081,19 +1084,44 @@ export const ObservationGrid: React.FC<ObservationGridProps> = ({
         <div className="rounded-xl border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0f1728] shadow-xs overflow-hidden">
           {/* Table Top Context Toolbar */}
           <div className="px-5 py-3.5 border-b border-slate-200/80 dark:border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50/70 dark:bg-slate-900/60">
-            <div className="flex items-center gap-2">
-              <Table className="w-4 h-4 text-brand-500" />
-              <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-                Observation Records
-              </h2>
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 rounded-lg bg-brand-500/10 text-brand-600 dark:text-brand-400">
+                <Table className="w-4 h-4" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                  Observation Worksheet
+                </h2>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  {tableDensity === 'STANDARD' ? 'Clean test run: target loads, observations, and statutory pass/fail verdicts' : 'Detailed metrologist mode: unrounded turning points (P), zero error (E₀), and auxiliary weights (ΔL)'}
+                </p>
+              </div>
             </div>
 
-            <div className="flex items-center text-xs font-mono">
-              <span className="px-3 py-1 rounded-md bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-300 border border-slate-200/80 dark:border-slate-700/80 font-mono text-xs flex items-center gap-2.5 shadow-xs">
-                <span>P = I + 0.5e − ΔL</span>
-                <span className="text-slate-400 dark:text-slate-500">•</span>
-                <span>Ec = (P − L) − E₀</span>
-              </span>
+            {/* Density Mode Switcher */}
+            <div className="flex items-center rounded-lg border border-slate-200/90 dark:border-white/[0.08] bg-slate-100/90 dark:bg-slate-800/80 p-0.5 text-xs">
+              <button
+                type="button"
+                onClick={() => setTableDensity('STANDARD')}
+                className={`px-3 py-1 rounded-md transition-all font-medium cursor-pointer ${
+                  tableDensity === 'STANDARD'
+                    ? 'bg-white dark:bg-slate-700 text-brand-800 dark:text-brand-300 font-semibold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                Standard View
+              </button>
+              <button
+                type="button"
+                onClick={() => setTableDensity('DETAILED')}
+                className={`px-3 py-1 rounded-md transition-all font-medium cursor-pointer ${
+                  tableDensity === 'DETAILED'
+                    ? 'bg-white dark:bg-slate-700 text-brand-800 dark:text-brand-300 font-semibold shadow-xs'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                }`}
+              >
+                Metrology Details (ΔL, P, E₀)
+              </button>
             </div>
           </div>
 
@@ -1104,20 +1132,24 @@ export const ObservationGrid: React.FC<ObservationGridProps> = ({
                 <tr className="border-b border-slate-200 dark:border-slate-800 bg-slate-100/70 dark:bg-slate-800/60 text-[11px] font-semibold text-slate-600 dark:text-slate-300 select-none">
                   <th className="py-2.5 px-3 w-14 text-center">Step</th>
                   <th className="py-2.5 px-3 w-20">Direction</th>
-                  <th className="py-2.5 px-3 text-right">Target (L)</th>
+                  <th className="py-2.5 px-3 text-right">Target Load (L)</th>
                   <th className="py-2.5 px-3 text-right bg-brand-50/40 dark:bg-brand-950/20 text-brand-800 dark:text-brand-300">
-                    Indication (I)
+                    Observation (I)
                   </th>
-                  <th className="py-2.5 px-3 text-right bg-brand-50/40 dark:bg-brand-950/20 text-brand-800 dark:text-brand-300">
-                    Aux Load (ΔL)
-                  </th>
-                  <th className="py-2.5 px-3 text-right">True (P)</th>
-                  <th className="py-2.5 px-3 text-right">Error (E)</th>
-                  <th className="py-2.5 px-3 text-right">Zero (E₀)</th>
+                  {tableDensity === 'DETAILED' && (
+                    <>
+                      <th className="py-2.5 px-3 text-right bg-brand-50/40 dark:bg-brand-950/20 text-brand-800 dark:text-brand-300">
+                        Aux Load (ΔL)
+                      </th>
+                      <th className="py-2.5 px-3 text-right">True Load (P)</th>
+                      <th className="py-2.5 px-3 text-right">Error (E)</th>
+                      <th className="py-2.5 px-3 text-right">Zero Shift (E₀)</th>
+                    </>
+                  )}
                   <th className="py-2.5 px-3 text-right text-brand-700 dark:text-brand-300 font-bold">
-                    Corrected (Ec)
+                    Calculated Error (Ec)
                   </th>
-                  <th className="py-2.5 px-3 text-right">MPE Limit</th>
+                  <th className="py-2.5 px-3 text-right">Legal MPE Limit</th>
                   <th className="py-2.5 px-3 text-center">Verdict</th>
                   <th className="py-2.5 px-3 text-center w-20">Actions</th>
                 </tr>
@@ -1239,46 +1271,51 @@ export const ObservationGrid: React.FC<ObservationGridProps> = ({
                         />
                       </td>
 
-                      {/* Auxiliary Load Delta L (Editable Cell) */}
-                      <td className="py-1 px-2 text-right bg-brand-50/20 dark:bg-brand-950/10">
-                        <input
-                          ref={(el) => {
-                            inputRefs.current[`${idx}-auxiliaryLoad`] = el;
-                          }}
-                          type="number"
-                          step="any"
-                          value={row.auxiliaryLoad !== null ? row.auxiliaryLoad : ''}
-                          onChange={(eVal) => handleAuxiliaryLoadChange(row.id, eVal.target.value)}
-                          onKeyDown={(eKey) => handleKeyDown(eKey, idx, 'auxiliaryLoad')}
-                          placeholder="—"
-                          className={`w-20 px-2 py-1 text-right text-xs font-semibold font-mono rounded-md border text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:outline-none transition-all tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
-                            isTrapRow
-                              ? 'border-amber-400 dark:border-amber-600 bg-amber-50/50 dark:bg-slate-900 shadow-xs'
-                              : isFailRow
-                              ? 'border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-slate-900 shadow-xs'
-                              : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'
-                          }`}
-                        />
-                      </td>
+                      {/* Detailed Calibration Parameters (Only in Detailed View) */}
+                      {tableDensity === 'DETAILED' && (
+                        <>
+                          {/* Auxiliary Load Delta L (Editable Cell) */}
+                          <td className="py-1 px-2 text-right bg-brand-50/20 dark:bg-brand-950/10">
+                            <input
+                              ref={(el) => {
+                                inputRefs.current[`${idx}-auxiliaryLoad`] = el;
+                              }}
+                              type="number"
+                              step="any"
+                              value={row.auxiliaryLoad !== null ? row.auxiliaryLoad : ''}
+                              onChange={(eVal) => handleAuxiliaryLoadChange(row.id, eVal.target.value)}
+                              onKeyDown={(eKey) => handleKeyDown(eKey, idx, 'auxiliaryLoad')}
+                              placeholder="—"
+                              className={`w-20 px-2 py-1 text-right text-xs font-semibold font-mono rounded-md border text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 focus:outline-none transition-all tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
+                                isTrapRow
+                                  ? 'border-amber-400 dark:border-amber-600 bg-amber-50/50 dark:bg-slate-900 shadow-xs'
+                                  : isFailRow
+                                  ? 'border-rose-400 dark:border-rose-600 bg-rose-50/30 dark:bg-slate-900 shadow-xs'
+                                  : 'border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900'
+                              }`}
+                            />
+                          </td>
 
-                      {/* True Indication P */}
-                      <td className="py-2 px-3 text-right font-medium text-slate-700 dark:text-slate-300 tabular-nums">
-                        {row.trueIndication !== null ? row.trueIndication.toFixed(1) : '—'}
-                      </td>
+                          {/* True Indication P */}
+                          <td className="py-2 px-3 text-right font-medium text-slate-700 dark:text-slate-300 tabular-nums">
+                            {row.trueIndication !== null ? row.trueIndication.toFixed(1) : '—'}
+                          </td>
 
-                      {/* Uncorrected Error E */}
-                      <td className="py-2 px-3 text-right font-medium text-slate-600 dark:text-slate-400 tabular-nums">
-                        {row.uncorrectedError !== null
-                          ? `${row.uncorrectedError > 0 ? '+' : ''}${row.uncorrectedError.toFixed(1)}`
-                          : '—'}
-                      </td>
+                          {/* Uncorrected Error E */}
+                          <td className="py-2 px-3 text-right font-medium text-slate-600 dark:text-slate-400 tabular-nums">
+                            {row.uncorrectedError !== null
+                              ? `${row.uncorrectedError > 0 ? '+' : ''}${row.uncorrectedError.toFixed(1)}`
+                              : '—'}
+                          </td>
 
-                      {/* Zero Error E0 */}
-                      <td className="py-2 px-3 text-right text-xs text-slate-500 dark:text-slate-400 tabular-nums">
-                        {row.zeroError !== 0
-                          ? `${row.zeroError > 0 ? '+' : ''}${row.zeroError.toFixed(1)}`
-                          : '0.0'}
-                      </td>
+                          {/* Zero Error E0 */}
+                          <td className="py-2 px-3 text-right text-xs text-slate-500 dark:text-slate-400 tabular-nums">
+                            {row.zeroError !== 0
+                              ? `${row.zeroError > 0 ? '+' : ''}${row.zeroError.toFixed(1)}`
+                              : '0.0'}
+                          </td>
+                        </>
+                      )}
 
                       {/* Corrected Error Ec (Primary Legal Value) */}
                       <td className="py-2 px-3 text-right font-bold text-xs tabular-nums">

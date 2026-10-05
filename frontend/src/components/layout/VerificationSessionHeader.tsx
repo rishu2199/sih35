@@ -97,7 +97,7 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
   onNavigateToTab,
   className = '',
 }) => {
-  const { activeLab, currentUser, lockedSessionCount } = useLab();
+  const { currentUser, lockedSessionCount } = useLab();
   const { activeScenario } = useScenario();
   const { isConnected, isSimulatorActive, currentWeight, isStable, unit: iotUnit } = useIoT();
 
@@ -132,19 +132,19 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
 
   return (
     <div
-      className={`rounded-2xl border border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0c1322] shadow-card overflow-hidden transition-all ${className}`}
+      className={`rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111827] shadow-xs overflow-hidden transition-all ${className}`}
     >
       {/* Top Banner: Persistent Case Context Header */}
-      <div className="px-5 py-4 border-b border-slate-100 dark:border-white/[0.06] bg-slate-50/50 dark:bg-white/[0.02]">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+      <div className="px-4 py-3 sm:px-6 sm:py-4 border-b border-slate-100 dark:border-slate-800/80 bg-slate-50/50 dark:bg-slate-900/30">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           {/* Left: Case Identity & Instrument Entity */}
           <div className="space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-mono font-bold px-2.5 py-0.5 rounded-full bg-brand-500/10 text-brand-700 dark:text-brand-300 border border-brand-500/25">
-                {activeLab.code} • CASE {sessionNumber}
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="text-xs font-mono font-semibold px-2.5 py-0.5 rounded-md bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 border border-blue-200 dark:border-blue-800/60">
+                CASE {sessionNumber}
               </span>
               <span className="text-slate-300 dark:text-slate-700">•</span>
-              <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 font-display">
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 font-sans">
                 {modelName}
               </h2>
               <span className="text-xs font-mono text-slate-500 dark:text-slate-400">
@@ -153,8 +153,8 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
             </div>
 
             {/* Metrological Profile Sub-bar */}
-            <div className="flex flex-wrap items-center gap-2.5 text-xs text-slate-600 dark:text-slate-400 pt-0.5 font-mono">
-              <span className="font-bold text-brand-600 dark:text-brand-400">
+            <div className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-400 font-mono">
+              <span className="font-semibold text-blue-600 dark:text-blue-400">
                 {accuracyClass.replace('_', ' ')}
               </span>
               <span>•</span>
@@ -167,7 +167,7 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
               <span>n = {n.toLocaleString()} div</span>
               <span>•</span>
               <span className="text-slate-400 dark:text-slate-500 font-sans">
-                Officer: <strong className="text-slate-700 dark:text-slate-300">{currentUser.fullName}</strong>
+                Officer: <strong className="text-slate-700 dark:text-slate-300 font-medium">{currentUser.fullName}</strong>
               </span>
             </div>
           </div>
@@ -178,7 +178,7 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
             <button
               onClick={() => onNavigateToTab('traceability')}
               title="Click to inspect standard weights traceability"
-              className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-medium border cursor-pointer transition-colors ${
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono font-medium border cursor-pointer transition-colors ${
                 lockedSessionCount > 0
                   ? 'bg-rose-500/10 text-rose-700 dark:text-rose-300 border-rose-500/30 hover:bg-rose-500/20'
                   : 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border-emerald-500/30 hover:bg-emerald-500/20'
@@ -186,13 +186,13 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
             >
               {lockedSessionCount > 0 ? (
                 <>
-                  <ShieldAlert className="w-3.5 h-3.5 text-rose-500 shrink-0" />
-                  <span>STANDARDS GATE: LOCKED</span>
+                  <ShieldAlert className="w-4 h-4 text-rose-500 shrink-0" />
+                  <span>STANDARDS: LOCKED</span>
                 </>
               ) : (
                 <>
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                  <span>STANDARDS GATE: VERIFIED</span>
+                  <ShieldCheck className="w-4 h-4 text-emerald-500 shrink-0" />
+                  <span>STANDARDS: VERIFIED</span>
                 </>
               )}
             </button>
@@ -201,17 +201,17 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
             <button
               onClick={() => onNavigateToTab('live_bridge')}
               title="Live scale connection"
-              className="flex items-center gap-2 px-3 py-1 rounded-lg text-xs font-mono bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+              className="flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs sm:text-sm font-mono bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/80 transition-colors"
             >
               <span
                 className={`w-2 h-2 rounded-full ${
                   isStable ? 'bg-emerald-500' : 'bg-amber-500 animate-pulse'
                 }`}
               />
-              <span className="font-bold">
+              <span className="font-semibold tabular-nums">
                 {currentWeight.toFixed(1)} {iotUnit}
               </span>
-              <span className="text-[10px] text-slate-400">
+              <span className="text-xs text-slate-400">
                 {isConnected ? 'SERIAL' : isSimulatorActive ? 'VIRTUAL' : 'OFFLINE'}
               </span>
             </button>
@@ -220,8 +220,8 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
       </div>
 
       {/* Linear Verification Stepper: 7-Step OIML R 76-1 Testing Protocol */}
-      <div className="px-5 py-3 overflow-x-auto scrollbar-none">
-        <div className="flex items-center justify-between min-w-[760px] gap-2">
+      <div className="px-4 py-3 sm:px-5 overflow-x-auto scrollbar-none">
+        <div className="flex items-center justify-between min-w-[780px] gap-2">
           {VERIFICATION_STEPS.map((step, idx) => {
             const isCurrent = step.key === currentTab;
             const isCompleted = idx < currentStepIdx;
@@ -233,18 +233,19 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
                 <button
                   type="button"
                   onClick={() => onNavigateToTab(step.key)}
-                  className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all cursor-pointer border shrink-0 ${
+                  title={`${step.label} (${step.statutoryClause})`}
+                  className={`flex items-center gap-2.5 px-3 py-2 rounded-lg text-left transition-all cursor-pointer border shrink-0 ${
                     isCurrent
-                      ? 'bg-brand-500/10 dark:bg-brand-500/[0.14] border-brand-500/40 text-brand-900 dark:text-brand-100 font-semibold shadow-xs ring-1 ring-brand-500/20'
+                      ? 'bg-blue-50 dark:bg-blue-950/50 border-blue-300 dark:border-blue-700 text-blue-900 dark:text-blue-100 font-semibold shadow-xs'
                       : isCompleted
-                      ? 'bg-slate-50/80 dark:bg-white/[0.03] border-slate-200 dark:border-white/[0.06] text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      ? 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-slate-300'
                       : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-300'
                   }`}
                 >
                   <div
-                    className={`w-6 h-6 rounded-lg flex items-center justify-center shrink-0 text-xs font-mono font-bold ${
+                    className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-xs font-mono font-bold ${
                       isCurrent
-                        ? 'bg-brand-600 text-white shadow-xs'
+                        ? 'bg-blue-600 text-white shadow-xs'
                         : isCompleted
                         ? 'bg-emerald-500 text-white'
                         : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
@@ -257,12 +258,12 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
                     )}
                   </div>
                   <div>
-                    <div className="text-xs leading-none flex items-center gap-1.5">
-                      <Icon className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                    <div className="text-xs sm:text-sm font-semibold leading-none flex items-center gap-1.5">
+                      <Icon className={`w-4 h-4 shrink-0 ${isCurrent ? 'text-blue-600 dark:text-blue-400' : 'text-slate-400'}`} />
                       <span>{step.label}</span>
                     </div>
-                    <div className="text-[10px] text-slate-400 dark:text-slate-500 font-normal leading-tight mt-0.5 truncate max-w-[110px]">
-                      {step.statutoryClause}
+                    <div className="text-[11px] text-slate-400 font-mono mt-1">
+                      {isCurrent ? 'Active Step' : isCompleted ? 'Completed' : 'Pending'}
                     </div>
                   </div>
                 </button>
@@ -270,10 +271,10 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
                 {/* Connecting Step Arrow */}
                 {idx < VERIFICATION_STEPS.length - 1 && (
                   <div
-                    className={`h-0.5 w-4 shrink-0 transition-colors ${
+                    className={`h-0.5 w-3 shrink-0 transition-colors ${
                       idx < currentStepIdx
-                        ? 'bg-emerald-500/40'
-                        : 'bg-slate-200 dark:bg-white/[0.08]'
+                        ? 'bg-emerald-500/50'
+                        : 'bg-slate-200 dark:bg-slate-800'
                     }`}
                   />
                 )}
@@ -284,28 +285,28 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
       </div>
 
       {/* Bottom Step Transition Toolbar: Previous / Next Quick Actions */}
-      <div className="px-5 py-2.5 bg-slate-50/80 dark:bg-white/[0.015] border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs">
+      <div className="px-5 py-3 bg-slate-50/80 dark:bg-white/[0.015] border-t border-slate-100 dark:border-white/[0.06] flex items-center justify-between text-xs sm:text-sm">
         <div>
           {prevStep ? (
             <button
               type="button"
               onClick={() => onNavigateToTab(prevStep.key)}
-              className="inline-flex items-center gap-1.5 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium cursor-pointer transition-colors"
+              className="inline-flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-medium cursor-pointer transition-colors"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-4 h-4" />
               <span>
-                Previous: <strong>{prevStep.label}</strong>
+                Previous: <strong className="font-semibold text-slate-800 dark:text-slate-200">{prevStep.label}</strong>
               </span>
             </button>
           ) : (
-            <span className="text-slate-400 text-[11px]">
+            <span className="text-slate-400 text-xs">
               Step 1 of 7: Initial Instrument Intake
             </span>
           )}
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="text-slate-400 hidden sm:inline text-[11px]">
+          <span className="text-slate-400 hidden sm:inline text-xs">
             OIML R 76-1 Statutory Test Sequence
           </span>
 
@@ -313,18 +314,18 @@ export const VerificationSessionHeader: React.FC<VerificationSessionHeaderProps>
             <button
               type="button"
               onClick={() => onNavigateToTab(nextStep.key)}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-brand-600 hover:bg-brand-500 text-white font-semibold cursor-pointer shadow-xs transition-colors"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold cursor-pointer shadow-xs transition-colors text-xs sm:text-sm"
             >
               <span>Next: {nextStep.label}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
+              <ArrowRight className="w-4 h-4" />
             </button>
           ) : (
             <button
               type="button"
               onClick={() => onNavigateToTab('review')}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer shadow-xs transition-colors"
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold cursor-pointer shadow-xs transition-colors text-xs sm:text-sm"
             >
-              <ShieldCheck className="w-3.5 h-3.5" />
+              <ShieldCheck className="w-4 h-4" />
               <span>Complete Verification Session</span>
             </button>
           )}

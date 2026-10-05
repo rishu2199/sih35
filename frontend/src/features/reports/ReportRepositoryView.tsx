@@ -223,7 +223,7 @@ export const ReportRepositoryView: React.FC<ReportRepositoryViewProps> = ({
             </span>
           </div>
           <span className="text-xs text-slate-500 dark:text-slate-400 font-sans mt-3">
-            Indexed in central SQLite/PG registry
+            National metrology digital repository
           </span>
         </div>
 
@@ -237,7 +237,7 @@ export const ReportRepositoryView: React.FC<ReportRepositoryViewProps> = ({
             </span>
           </div>
           <span className="text-xs text-slate-500 dark:text-slate-400 font-sans mt-3">
-            Rule 16 signed with SHA-256 seal
+            Legally signed &amp; digitally certified
           </span>
         </div>
 

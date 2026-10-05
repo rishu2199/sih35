@@ -14,15 +14,15 @@ interface BreadcrumbsProps {
 
 export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, className = '' }) => {
   return (
-    <nav className={`flex items-center space-x-1.5 text-xs text-slate-500 dark:text-slate-400 ${className}`} aria-label="Breadcrumb">
+    <nav className={`flex items-center space-x-2 text-xs sm:text-sm text-slate-500 dark:text-slate-400 ${className}`} aria-label="Breadcrumb">
       <div className="flex items-center gap-1.5">
-        <Home className="w-3.5 h-3.5 text-slate-400 dark:text-slate-500" />
-        <span className="font-medium text-slate-700 dark:text-slate-300">DoCA Metrology</span>
+        <Home className="w-4 h-4 text-slate-400 dark:text-slate-500" />
+        <span className="font-semibold text-slate-700 dark:text-slate-300">DoCA Metrology</span>
       </div>
 
       {items.map((item, index) => (
         <React.Fragment key={index}>
-          <ChevronRight className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+          <ChevronRight className="w-4 h-4 text-slate-400 shrink-0" />
           {item.onClick && !item.isCurrent ? (
             <button
               onClick={item.onClick}

@@ -1,0 +1,60 @@
+@import './styles/tokens.css';
+@import './styles/theme.css';
+@import './styles/globals.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-bg-app: #F6F8FB;
+    --color-surface-primary: #FFFFFF;
+    --color-surface-secondary: #F9FAFC;
+    --color-border: #E4E8EF;
+    --color-text-primary: #172033;
+    --color-text-secondary: #596579;
+    --color-text-muted: #8A94A6;
+  }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #172033;
+    background-color: #F6F8FB;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Monospace tabular technical data */
+  .font-mono-numbers {
+    font-family: 'IBM Plex Mono', SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Minimal Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #CBD2DC;
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s ease-in-out;
+}
+

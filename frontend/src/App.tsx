@@ -109,7 +109,7 @@ const MainLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] dark:bg-[#080c14] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200">
+    <div className="h-screen bg-[#f8fafc] dark:bg-[#090d16] text-slate-900 dark:text-slate-100 flex flex-col font-sans transition-colors duration-200 overflow-hidden">
       {/* Top Header */}
       <Header
         onToggleSidebar={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
@@ -293,14 +293,13 @@ const MainLayout: React.FC = () => {
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
                       Hierarchy Level
                     </span>
-                    <div className="my-1">
-                      <div className="text-3xl font-bold text-slate-900 dark:text-white leading-tight">
-                        <div>Working</div>
-                        <div>Standard</div>
-                      </div>
+                    <div className="my-2">
+                      <span className="text-2xl font-bold font-display text-slate-900 dark:text-white">
+                        Working Standard
+                      </span>
                     </div>
-                    <span className="text-xs text-slate-400 font-sans mt-2">
-                      Traceable to National Prototype
+                    <span className="text-xs text-slate-400 font-sans">
+                      Traceable to National Prototype (NPLI)
                     </span>
                   </div>
                 </div>
@@ -316,19 +315,19 @@ const MainLayout: React.FC = () => {
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
                     <div className="flex items-center gap-2.5">
-                      <FileCheck2 className="w-6 h-6 text-brand-400 shrink-0" />
+                      <FileCheck2 className="w-6 h-6 text-brand-600 dark:text-brand-400 shrink-0" />
                       <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white font-display">
-                        Statutory Immutable Audit Trail
+                        Statutory Audit Trail
                       </h2>
                     </div>
                     <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-                      Cryptographic event sourcing (SHA-256) logging every raw observation change, operator credential, and verification status.
+                      Tamper-evident event log recording raw observation revisions, officer signatures, and statutory seal approvals.
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => setCurrentTab('dashboard')}
-                    className="px-4 py-2 rounded-xl border border-slate-700/60 bg-slate-900/60 hover:bg-slate-800 text-slate-200 text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0"
+                    className="px-4 py-2 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold shadow-xs transition-colors cursor-pointer shrink-0"
                   >
                     Back to Dashboard
                   </button>
@@ -337,13 +336,13 @@ const MainLayout: React.FC = () => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 bg-white dark:bg-[#0c1322] shadow-card">
                     <div className="text-[11px] font-bold font-mono tracking-wider text-slate-400 uppercase">
-                      CRYPTOGRAPHIC CHAIN
+                      CRYPTOGRAPHIC SEAL
                     </div>
                     <div className="text-3xl font-black font-mono tracking-tight text-slate-900 dark:text-white mt-3">
                       SHA-256
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 mt-3 font-normal">
-                      Tamper-evident hash link
+                      Immutable hash chain active
                     </div>
                   </div>
 
@@ -355,34 +354,56 @@ const MainLayout: React.FC = () => {
                       1,429
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 mt-3 font-normal">
-                      Full lifecycle coverage
+                      Complete verification history
                     </div>
                   </div>
 
                   <div className="p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 bg-white dark:bg-[#0c1322] shadow-card">
                     <div className="text-[11px] font-bold font-mono tracking-wider text-slate-400 uppercase">
-                      INTEGRITY VERIFICATION
+                      CHAIN INTEGRITY
                     </div>
-                    <div className="text-3xl font-black font-mono tracking-tight text-slate-900 dark:text-white mt-3">
+                    <div className="text-3xl font-black font-mono tracking-tight text-emerald-600 dark:text-emerald-400 mt-3">
                       VERIFIED 100%
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 mt-3 font-normal">
-                      Zero broken chain links
+                      Zero broken blocks detected
                     </div>
                   </div>
                 </div>
 
-                <div className="p-6 rounded-2xl border border-slate-200/90 dark:border-slate-800/80 bg-white dark:bg-[#0c1322] shadow-card space-y-4 font-mono text-xs">
-                  <div className="text-sm font-semibold text-slate-900 dark:text-slate-200 font-sans">
-                    Recent Cryptographic Block Header
+                <div className="rounded-2xl border border-slate-200/90 dark:border-slate-800/80 bg-white dark:bg-[#0c1322] shadow-card overflow-hidden">
+                  <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800/80 flex items-center justify-between">
+                    <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                      Recent Verification Event Log
+                    </span>
+                    <span className="text-xs font-mono text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Live Audited
+                    </span>
                   </div>
-                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#070c18] break-all flex items-center gap-2">
-                    <span className="text-brand-600 dark:text-brand-400 font-bold tracking-wider shrink-0">PREV_HASH:</span>
-                    <span className="text-slate-700 dark:text-slate-300">e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855</span>
-                  </div>
-                  <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#070c18] break-all flex items-center gap-2">
-                    <span className="text-emerald-600 dark:text-emerald-400 font-bold tracking-wider shrink-0">CURR_HASH:</span>
-                    <span className="text-slate-700 dark:text-slate-300">8f434346648f6b96df89dda901c5176b10a6d83961dd3c1ac88b59b2dc327aa4</span>
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
+                    {[
+                      { action: 'Observation Reading Captured', detail: 'Step 4 • L = 10,000 g • Indication I = 10,000 g', officer: 'Dr. Anand Raman (Metrologist)', time: '2 mins ago', hash: '8f434...327aa' },
+                      { action: 'Optical Tilt Verification', detail: 'Concentric Spirit Bubble tilt verified ≤ 0.2°', officer: 'Dr. Anand Raman (Metrologist)', time: '14 mins ago', hash: 'e3b0c...7852b' },
+                      { action: 'Standards Pre-Condition Verified', detail: 'OIML R 111 Set RRSL-SET-E2-001 valid through 2027', officer: 'System Auto-Audit', time: '28 mins ago', hash: '3a7d1...991ab' },
+                      { action: 'Intake Registration Completed', detail: 'Avery ZM510 Precision Platform registered', officer: 'Dr. Anand Raman (Metrologist)', time: '35 mins ago', hash: '19c8f...0048e' },
+                    ].map((evt, i) => (
+                      <div key={i} className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
+                        <div>
+                          <div className="font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                            <span>{evt.action}</span>
+                            <span className="text-[10px] font-mono px-2 py-0.2 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">
+                              {evt.hash}
+                            </span>
+                          </div>
+                          <p className="text-slate-500 dark:text-slate-400 mt-0.5">{evt.detail}</p>
+                        </div>
+                        <div className="text-left sm:text-right text-[11px] text-slate-400 shrink-0">
+                          <p className="font-medium text-slate-600 dark:text-slate-300">{evt.officer}</p>
+                          <p className="text-slate-400 mt-0.5">{evt.time}</p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>

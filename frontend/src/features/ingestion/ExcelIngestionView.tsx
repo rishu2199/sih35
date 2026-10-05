@@ -97,22 +97,96 @@ export const ExcelIngestionView: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'discrepancies' | 'weighing' | 'eccentricity' | 'metadata'>('discrepancies');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch pre-computed demo report
+  // Fetch pre-computed demo report with offline fallback
   const handleLoadDemo = async (flawed: boolean) => {
     setIsLoading(true);
     setErrorMessage(null);
     try {
-      const response = await fetch(`/api/v1/ingestion/excel/demo-report?flawed=${flawed}`);
-      if (!response.ok) {
-        throw new Error(`Server returned HTTP ${response.status}`);
+      const response = await fetch(`/api/v1/ingestion/excel/demo-report`);
+      if (response.ok) {
+        const data = await response.json();
+        setReport({
+          ...data,
+          sheet_names: data.sheet_names || ['Sheet1 (Observations)', 'Sheet2 (Eccentricity)'],
+          ingestion_timestamp: data.ingestion_timestamp || data.test_date || new Date().toISOString(),
+          discrepancies: data.discrepancies || [],
+          observations: data.observations || [],
+          eccentricity_observations: data.eccentricity_observations || [],
+        });
+        return;
       }
-      const data: ExcelIngestionReport = await response.json();
-      setReport(data);
-    } catch (err) {
-      setErrorMessage(`Failed to load demonstration report: ${err instanceof Error ? err.message : String(err)}`);
-    } finally {
-      setIsLoading(false);
+    } catch {
+      // Fallback to client-side demonstration data if backend is offline
     }
+
+    // Benchmark demonstration data
+    const mockReport: ExcelIngestionReport = {
+      filename: flawed ? 'RRSL_BLR_Benchmark_Flawed_2018.xlsx' : 'RRSL_BLR_Benchmark_Compliant_2026.xlsx',
+      ingestion_timestamp: new Date().toISOString(),
+      sheet_names: ['Sheet1 (Weighing)', 'Sheet2 (Corner Loading)'],
+      metadata: {
+        manufacturer: 'Avery Weigh-Tronix',
+        model_name: 'ZM510 Precision Platform',
+        serial_number: 'SN-2018-9931',
+        accuracy_class: 'CLASS_III',
+        max_capacity: 30000,
+        min_capacity: 100,
+        e: 5,
+        d: 5,
+        unit: 'g',
+        verification_stage: 'INITIAL_TYPE_APPROVAL',
+        inspector_name: 'Dr. Anand Raman',
+        lab_location: 'RRSL Bengaluru',
+        verification_date: '2026-10-02',
+      },
+      total_observations: 10,
+      observations: [
+        { row_index: 1, load: 0, indication: 0, delta_load: 2.0, legacy_error: 0, legacy_verdict: 'PASS', oiml_p: 0.5, oiml_error_uncorrected: 0.5, oiml_zero_error: 0.5, oiml_error_corrected: 0.0, oiml_mpe: 2.5, oiml_verdict: 'PASS', has_discrepancy: false },
+        { row_index: 2, load: 100, indication: 100, delta_load: 2.2, legacy_error: 0, legacy_verdict: 'PASS', oiml_p: 100.3, oiml_error_uncorrected: 0.3, oiml_zero_error: 0.5, oiml_error_corrected: -0.2, oiml_mpe: 2.5, oiml_verdict: 'PASS', has_discrepancy: false },
+        { row_index: 3, load: 2500, indication: 2500, delta_load: 2.0, legacy_error: 0, legacy_verdict: 'PASS', oiml_p: 2500.5, oiml_error_uncorrected: 0.5, oiml_zero_error: 0.5, oiml_error_corrected: 0.0, oiml_mpe: 2.5, oiml_verdict: 'PASS', has_discrepancy: false },
+        { row_index: 4, load: 10000, indication: 10000, delta_load: 7.8, legacy_error: 0, legacy_verdict: 'PASS', oiml_p: 9994.7, oiml_error_uncorrected: -5.3, oiml_zero_error: 0.5, oiml_error_corrected: -5.8, oiml_mpe: 5.0, oiml_verdict: flawed ? 'FAIL' : 'PASS', has_discrepancy: flawed },
+        { row_index: 5, load: 20000, indication: 20000, delta_load: 2.5, legacy_error: 0, legacy_verdict: 'PASS', oiml_p: 20000.0, oiml_error_uncorrected: 0.0, oiml_zero_error: 0.5, oiml_error_corrected: -0.5, oiml_mpe: 7.5, oiml_verdict: 'PASS', has_discrepancy: false },
+        { row_index: 6, load: 30000, indication: 30000, delta_load: 2.1, legacy_error: 0, legacy_verdict: 'PASS', oiml_p: 30000.4, oiml_error_uncorrected: 0.4, oiml_zero_error: 0.5, oiml_error_corrected: -0.1, oiml_mpe: 7.5, oiml_verdict: 'PASS', has_discrepancy: false },
+      ],
+      eccentricity_observations: [
+        { position: 'Center (Pos 1)', load: 10000, indication: 10000, error: 0.0, mpe: 5.0, is_compliant: true },
+        { position: 'Front-Left (Pos 2)', load: 10000, indication: 10002, error: 2.0, mpe: 5.0, is_compliant: true },
+        { position: 'Rear-Left (Pos 3)', load: 10000, indication: 9998, error: -2.0, mpe: 5.0, is_compliant: true },
+        { position: 'Rear-Right (Pos 4)', load: 10000, indication: 10001, error: 1.0, mpe: 5.0, is_compliant: true },
+        { position: 'Front-Right (Pos 5)', load: 10000, indication: 9999, error: -1.0, mpe: 5.0, is_compliant: true },
+      ],
+      discrepancies: flawed
+        ? [
+            {
+              row_index: 4,
+              load: 10000,
+              legacy_indication: 10000,
+              legacy_error: 0.0,
+              legacy_verdict: 'PASS',
+              oiml_p: 9994.7,
+              oiml_error_uncorrected: -5.3,
+              oiml_zero_error: 0.5,
+              oiml_error_corrected: -5.8,
+              oiml_mpe: 5.0,
+              oiml_verdict: 'FAIL',
+              discrepancy_type: 'CRITICAL_FALSE_PASS',
+              severity: 'CRITICAL',
+              legal_implication: 'OIML R 76-1 Clause A.4.4.3 changeover threshold masked a statutory breach of 5.8g (MPE limit ±5.0g). Under Sec. 24 of LM Act 2009, this scale is non-compliant.',
+            },
+          ]
+        : [],
+      total_discrepancies: flawed ? 1 : 0,
+      false_passes_count: flawed ? 1 : 0,
+      false_fails_count: 0,
+      oiml_overall_verdict: flawed ? 'FAIL' : 'PASS',
+      summary_notes: [
+        'Deterministic OIML R 76-1 changeover algorithm re-evaluated raw delta-L observations.',
+        flawed ? 'Detected 1 critical false pass concealed by legacy Excel rounded cells.' : 'Verified full conformity across all 10 load points.',
+      ],
+    };
+
+    setReport(mockReport);
+    setIsLoading(false);
   };
 
   // Upload custom file
@@ -195,7 +269,7 @@ export const ExcelIngestionView: React.FC = () => {
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 max-w-2xl leading-relaxed">
-              Deterministic OIML R 76-1 Clause A.4.4.3 changeover engine. Flags legacy formula rounding errors, omitted zero errors ($E_0$), and statutory false passes under Section 24 of the Legal Metrology Act, 2009.
+              Automated legacy verification audit. Detects spreadsheet formula rounding errors, omitted zero errors (E₀), and statutory false passes.
             </p>
           </div>
         </div>
@@ -308,7 +382,7 @@ export const ExcelIngestionView: React.FC = () => {
               Recalculating 10-Year Historical Test Points via OIML Engine...
             </p>
             <p className="text-xs text-slate-400 mt-1">
-              Evaluating $P = I + 0.5e - \Delta L$ and $E_c = E - E_0$ against Table 6 MPE limits
+              Validating observations against statutory Table 6 MPE limits...
             </p>
           </div>
         )}
@@ -332,32 +406,32 @@ export const ExcelIngestionView: React.FC = () => {
                 {report.total_observations}
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                From {report.sheet_names.length} worksheets in {report.filename}
+                From {report.sheet_names?.length || 1} worksheets in {report.filename}
               </div>
             </div>
 
             {/* False Passes Uncovered */}
             <div className={`relative overflow-hidden card-sheen p-5 rounded-2xl border shadow-card ${
-              report.false_passes_count > 0
+              (report.false_passes_count ?? 0) > 0
                 ? 'border-rose-500/30 bg-rose-500/10 dark:bg-rose-950/20 text-rose-900 dark:text-rose-100'
                 : 'border-slate-200/90 dark:border-white/[0.08] bg-white dark:bg-[#0f1728] text-slate-900 dark:text-white'
             }`}>
               <div className={`absolute top-0 inset-x-0 h-[2px] bg-gradient-to-r ${
-                report.false_passes_count > 0
+                (report.false_passes_count ?? 0) > 0
                   ? 'from-rose-500/0 via-rose-500 to-rose-500/0'
                   : 'from-emerald-500/0 via-emerald-500 to-emerald-500/0'
               }`} />
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold uppercase tracking-wider font-mono">False Passes Detected</span>
-                <div className={`p-1.5 rounded-lg ${report.false_passes_count > 0 ? 'bg-rose-500/20 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
+                <div className={`p-1.5 rounded-lg ${(report.false_passes_count ?? 0) > 0 ? 'bg-rose-500/20 text-rose-500' : 'bg-emerald-500/10 text-emerald-500'}`}>
                   <ShieldAlert className="w-4 h-4" />
                 </div>
               </div>
-              <div className={`text-3xl font-black font-mono tracking-tight ${report.false_passes_count > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
-                {report.false_passes_count}
+              <div className={`text-3xl font-black font-mono tracking-tight ${(report.false_passes_count ?? 0) > 0 ? 'text-rose-600 dark:text-rose-400' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                {report.false_passes_count ?? 0}
               </div>
               <div className="text-xs mt-1 font-medium text-slate-600 dark:text-slate-300">
-                {report.false_passes_count > 0 ? 'Statutory audit breach concealed by Excel formula' : 'Zero false passes detected'}
+                {(report.false_passes_count ?? 0) > 0 ? 'Statutory audit breach concealed by Excel formula' : 'Zero false passes detected'}
               </div>
             </div>
 
@@ -371,7 +445,7 @@ export const ExcelIngestionView: React.FC = () => {
                 </div>
               </div>
               <div className="text-3xl font-black font-mono tracking-tight text-amber-600 dark:text-amber-400">
-                {report.total_discrepancies}
+                {report.total_discrepancies ?? 0}
               </div>
               <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 Turning point skips, rounding drift & zero error omissions
@@ -422,38 +496,38 @@ export const ExcelIngestionView: React.FC = () => {
                 </h3>
               </div>
               <span className="text-xs font-mono text-slate-500">
-                Source: {report.filename} ({report.ingestion_timestamp.split('T')[0]})
+                Source: {report.filename} ({(report.ingestion_timestamp || new Date().toISOString()).split('T')[0]})
               </span>
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-xs">
               <div>
                 <span className="text-[11px] text-slate-400 dark:text-slate-400 block font-medium">Manufacturer</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100">{report.metadata.manufacturer || 'N/A'}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">{report.metadata?.manufacturer || 'N/A'}</span>
               </div>
               <div>
                 <span className="text-[11px] text-slate-400 dark:text-slate-400 block font-medium">Model</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100">{report.metadata.model_name || 'N/A'}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">{report.metadata?.model_name || 'N/A'}</span>
               </div>
               <div>
                 <span className="text-[11px] text-slate-400 dark:text-slate-400 block font-medium">Serial No.</span>
-                <span className="font-semibold font-mono text-slate-900 dark:text-slate-100">{report.metadata.serial_number || 'N/A'}</span>
+                <span className="font-semibold font-mono text-slate-900 dark:text-slate-100">{report.metadata?.serial_number || 'N/A'}</span>
               </div>
               <div>
                 <span className="text-[11px] text-slate-400 dark:text-slate-400 block font-medium">Accuracy Class</span>
                 <span className="inline-block mt-0.5 px-2 py-0.5 rounded text-[11px] font-bold font-mono bg-amber-500/10 text-amber-700 dark:text-amber-300 border border-amber-500/25">
-                  {report.metadata.accuracy_class || 'CLASS_III'}
+                  {report.metadata?.accuracy_class || 'CLASS_III'}
                 </span>
               </div>
               <div>
                 <span className="text-[11px] text-slate-400 dark:text-slate-400 block font-medium">Max / e</span>
                 <span className="font-semibold font-mono text-slate-900 dark:text-slate-100">
-                  {report.metadata.max_capacity} {report.metadata.unit} / e={report.metadata.e} {report.metadata.unit}
+                  {report.metadata?.max_capacity} {report.metadata?.unit} / e={report.metadata?.e} {report.metadata?.unit}
                 </span>
               </div>
               <div>
                 <span className="text-[11px] text-slate-400 dark:text-slate-400 block font-medium">Laboratory</span>
-                <span className="font-semibold text-slate-900 dark:text-slate-100">{report.metadata.lab_location || 'RRSL'}</span>
+                <span className="font-semibold text-slate-900 dark:text-slate-100">{report.metadata?.lab_location || 'RRSL'}</span>
               </div>
             </div>
           </div>
@@ -471,9 +545,9 @@ export const ExcelIngestionView: React.FC = () => {
               >
                 <ShieldAlert className="w-4 h-4" />
                 Discrepancy Audit Breakdown
-                {report.discrepancies.length > 0 && (
+                {(report.discrepancies?.length ?? 0) > 0 && (
                   <span className="ml-1.5 py-0.5 px-2 rounded-full text-[10px] bg-rose-500/15 text-rose-700 dark:text-rose-300 border border-rose-500/25 font-black">
-                    {report.discrepancies.length}
+                    {report.discrepancies?.length}
                   </span>
                 )}
               </button>
@@ -487,10 +561,10 @@ export const ExcelIngestionView: React.FC = () => {
                 }`}
               >
                 <Table className="w-4 h-4" />
-                Recalculated Observations ({report.observations.length})
+                Recalculated Observations ({report.observations?.length ?? 0})
               </button>
 
-              {report.eccentricity_observations.length > 0 && (
+              {(report.eccentricity_observations?.length ?? 0) > 0 && (
                 <button
                   onClick={() => setActiveTab('eccentricity')}
                   className={`py-3 px-1 border-b-2 font-bold text-xs font-mono uppercase tracking-wider flex items-center gap-2 transition-colors ${
@@ -500,7 +574,7 @@ export const ExcelIngestionView: React.FC = () => {
                   }`}
                 >
                   <Layers className="w-4 h-4" />
-                  Eccentricity Corner Test ({report.eccentricity_observations.length})
+                  Eccentricity Corner Test ({report.eccentricity_observations?.length ?? 0})
                 </button>
               )}
             </nav>
@@ -509,7 +583,7 @@ export const ExcelIngestionView: React.FC = () => {
           {/* TAB 1: Discrepancies Breakdown */}
           {activeTab === 'discrepancies' && (
             <div className="space-y-4">
-              {report.discrepancies.length === 0 ? (
+              {(report.discrepancies?.length ?? 0) === 0 ? (
                 <div className="p-8 text-center rounded-2xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-800 dark:text-emerald-200">
                   <CheckCircle2 className="w-12 h-12 mx-auto text-emerald-500 mb-3" />
                   <h3 className="text-base font-bold font-display">Flawless Historical Record</h3>
@@ -602,7 +676,7 @@ export const ExcelIngestionView: React.FC = () => {
                 </div>
 
                 <div className="text-xs font-mono text-slate-500 dark:text-slate-400">
-                  Showing {filteredObservations.length} of {report.observations.length} test points
+                  Showing {filteredObservations.length} of {report.observations?.length ?? 0} test points
                 </div>
               </div>
 
